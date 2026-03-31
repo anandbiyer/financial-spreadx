@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Financial SpreadX — Demo Mockup v1.1</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;font-size:13px;color:#1a1917;background:#f4f3f0;padding:18px;max-width:1080px;margin:0 auto}
+.page-hdr{padding:12px 0 10px;border-bottom:1px solid #ccc9bf;margin-bottom:13px;display:flex;align-items:center;justify-content:space-between}
+.page-hdr-t{font-size:15px;font-weight:600;color:#1a1917}
+.page-hdr-s{font-size:11px;color:#8a8880;margin-top:2px}
+.v-pill{background:#fef3c7;color:#92400e;font-size:10px;font-weight:500;padding:3px 10px;border-radius:20px;border:1px solid #d97706}
+.jumps{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:13px;padding-bottom:10px;border-bottom:1px solid #e4e2dc}
+.jl{padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:500;background:#fff;border:1px solid #ccc9bf;color:#4a4844;text-decoration:none}
+.blk{margin-bottom:26px}
+.blk-lbl{display:flex;align-items:center;justify-content:space-between;padding:8px 13px;background:#0f1117;border-radius:8px 8px 0 0}
+.blk-n{font-size:12px;font-weight:600;color:#fff}
+.blk-r{font-family:monospace;font-size:10px;color:rgba(255,255,255,.4)}
+.blk-new{font-size:9.5px;color:#f59e0b;font-weight:500;padding:2px 7px;background:rgba(245,158,11,.15);border-radius:4px}
+.frame{display:flex;border:1px solid #ccc9bf;border-top:none;border-radius:0 0 8px 8px;overflow:hidden}
+/* SIDEBAR */
+.sb{width:185px;background:#0f1117;flex-shrink:0;display:flex;flex-direction:column}
+.sb-logo{padding:12px 11px 9px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-m{font-size:11.5px;font-weight:600;color:#fff}
+.sb-sub{font-size:8px;color:rgba(255,255,255,.3);margin-top:1px}
+.sb-demo{font-size:8px;color:#f59e0b;margin-top:1px;font-weight:500}
+.sb-nav{padding:6px 4px;flex:1}
+.sg{font-size:8px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.28);padding:8px 7px 3px}
+.si{display:flex;align-items:center;gap:6px;padding:5px 7px;border-radius:4px;color:rgba(255,255,255,.45);font-size:10.5px;margin-bottom:1px}
+.si.cur{background:rgba(255,255,255,.10);color:#fff}
+.si-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.si-ct{margin-left:auto;background:rgba(255,255,255,.10);color:rgba(255,255,255,.5);font-size:8.5px;padding:1px 4px;border-radius:7px}
+.sb-foot{padding:7px 4px 8px;border-top:1px solid rgba(255,255,255,.08);margin-top:auto}
+.av{width:21px;height:21px;border-radius:50%;background:#1d4ed8;display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:600;color:#fff;flex-shrink:0}
+/* MAIN */
+.mn{flex:1;display:flex;flex-direction:column;min-width:0;background:#f4f3f0}
+.tb{display:flex;align-items:center;justify-content:space-between;padding:0 13px;height:44px;background:#fff;border-bottom:1px solid #e4e2dc;flex-shrink:0}
+.pg-t{font-size:12.5px;font-weight:500;color:#1a1917}
+.pg-s{font-size:10px;color:#8a8880;margin-left:5px}
+.tb-r{display:flex;align-items:center;gap:6px}
+.ct{padding:12px}
+.btn{display:inline-flex;align-items:center;gap:3px;padding:4px 10px;border-radius:5px;font-size:10.5px;font-weight:500;border:none;white-space:nowrap}
+.bp{background:#1d4ed8;color:#fff}
+.bg{background:#fff;color:#4a4844;border:1px solid #ccc9bf}
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:2px 6px;border-radius:20px;font-size:9.5px;font-weight:500;white-space:nowrap}
+.b-blue{background:#dbeafe;color:#1e40af}
+.b-green{background:#dcfce7;color:#166534}
+.b-amber{background:#fef3c7;color:#92400e}
+.b-red{background:#fee2e2;color:#991b1b}
+.b-purple{background:#ede9fe;color:#4c1d95}
+.b-teal{background:#ccfbf1;color:#134e4a}
+.b-gray{background:#f1f0eb;color:#5f5e5a}
+.b-ora{background:#ffedd5;color:#9a3412}
+.b-ocr{background:#fef3c7;color:#92400e;font-size:8.5px;font-weight:600;padding:1px 5px;border-radius:3px}
+.b-cons{background:#ccfbf1;color:#134e4a;font-weight:600}
+.b-stand{background:#ede9fe;color:#4c1d95;font-weight:600}
+.b-actual{background:#dcfce7;color:#166534;font-size:9px}
+.b-restated{background:#fef3c7;color:#92400e;font-size:9px}
+/* CARDS */
+.card{background:#fff;border:1px solid #e4e2dc;border-radius:8px;overflow:hidden}
+.card-h{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #e4e2dc}
+.card-t{font-size:11px;font-weight:500;color:#1a1917}
+/* STAT CARDS */
+.sr{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:11px}
+.sc{background:#f4f3f0;border-radius:7px;padding:10px 12px}
+.sl{font-size:9px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:#8a8880;margin-bottom:2px}
+.sn{font-size:19px;font-weight:500;line-height:1}
+.ss{font-size:9.5px;color:#8a8880;margin-top:2px}
+/* TABLE */
+table{width:100%;border-collapse:collapse}
+th{padding:5px 9px;text-align:left;font-size:9px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#8a8880;border-bottom:1px solid #e4e2dc;background:#f9f8f5}
+td{padding:6px 9px;border-bottom:1px solid #e4e2dc;font-size:11px;color:#4a4844;vertical-align:middle}
+tr:last-child td{border:none}
+.co{font-weight:500;color:#1a1917;font-size:11px}
+.co-s{font-size:9px;color:#8a8880}
+.hbar{width:46px;height:4px;background:#e4e2dc;border-radius:2px;overflow:hidden;display:inline-block;vertical-align:middle}
+.hf{height:100%;border-radius:2px}
+.al{color:#1d4ed8;font-size:10px}
+/* FILTERS */
+.fpills{display:flex;gap:4px}
+.fp{padding:3px 8px;border-radius:20px;font-size:10px;font-weight:500;border:1px solid #ccc9bf;color:#4a4844;background:#fff}
+.fp.on{background:#1d4ed8;color:#fff;border-color:#1d4ed8}
+/* SYNC BANNER */
+.sync-banner{display:flex;align-items:center;gap:8px;padding:7px 11px;background:#fef3c7;border:1px solid #d97706;border-radius:6px;margin-bottom:10px;font-size:11px;color:#92400e}
+.pulse{width:7px;height:7px;border-radius:50%;background:#f59e0b;flex-shrink:0;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+/* UPLOAD */
+.drop-z{border:2px dashed #ccc9bf;border-radius:7px;padding:26px 16px;text-align:center;background:#f9f8f5;margin-bottom:10px}
+.conf-ring{width:36px;height:36px;border-radius:50%;border:3px solid #166534;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#166534;flex-shrink:0}
+.cls-row{display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid #e4e2dc;font-size:11px}
+.cls-row:last-child{border:none}
+.cls-k{color:#8a8880}
+.cls-v{font-weight:500;color:#1a1917;display:flex;align-items:center;gap:4px}
+.up-row{display:flex;align-items:center;gap:8px;padding:6px 11px;border-bottom:1px solid #e4e2dc}
+.up-row:last-child{border:none}
+.up-ico{width:25px;height:25px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700}
+/* PIPELINE STEPS */
+.pipe-step{display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid #f4f3f0}
+.pipe-step:last-child{border:none}
+.pipe-num{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;flex-shrink:0}
+.ps-done{background:#dcfce7;color:#166534}
+.ps-running{background:#dbeafe;color:#1e40af;animation:pulse 1.2s infinite}
+.ps-ocr{background:#fef3c7;color:#92400e}
+.ps-pending{background:#f4f3f0;color:#8a8880}
+.pipe-text{font-size:11px;color:#4a4844;line-height:1.4}
+.pipe-sub{font-size:9.5px;color:#8a8880}
+/* REVIEW */
+.rev-sp{display:flex;gap:10px}
+.pdf-pane{width:232px;flex-shrink:0;background:#fff;border:1px solid #e4e2dc;border-radius:7px;overflow:hidden;display:flex;flex-direction:column}
+.pdf-tb2{display:flex;align-items:center;justify-content:space-between;padding:6px 9px;border-bottom:1px solid #e4e2dc}
+.pdf-pg{background:#64748b;flex:1;min-height:310px;position:relative}
+.pdf-inner{background:#fff;position:absolute;inset:7px;padding:9px;font-size:6.5px;line-height:1.5;color:#374151;overflow:hidden;border-radius:2px}
+.pdf-hl{background:rgba(251,191,36,.4);padding:0 2px;border-radius:1px}
+.pdf-nv{display:flex;align-items:center;justify-content:space-between;padding:5px 9px;border-top:1px solid #e4e2dc;font-size:9.5px;color:#8a8880}
+.mp-pane{flex:1;display:flex;flex-direction:column;gap:7px;min-width:0}
+.rtbl th{padding:5px 7px;font-size:8.5px}
+.rtbl td{padding:5px 7px;font-size:10.5px}
+.rtbl tr.flagged td{background:#fffbeb}
+.raw-l{font-family:monospace;font-size:9px;color:#8a8880;max-width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cf-n{font-weight:500;color:#1a1917;font-size:10.5px}
+.cb-w{display:flex;align-items:center;gap:3px}
+.cb{width:28px;height:3px;border-radius:2px;background:#e4e2dc;overflow:hidden}
+.cbf{height:100%;border-radius:2px}
+.note-link{color:#1d4ed8;font-size:9.5px;font-weight:500;border-bottom:1px dashed #93c5fd;cursor:pointer}
+.scope-pills{display:flex;gap:0;border:1px solid #ccc9bf;border-radius:5px;overflow:hidden;margin-left:8px}
+.scope-btn{padding:3px 10px;font-size:10px;font-weight:500;color:#4a4844;background:#fff;border:none;border-right:1px solid #ccc9bf}
+.scope-btn:last-child{border-right:none}
+.scope-btn.act{background:#1d4ed8;color:#fff}
+/* COL TYPE HEADER */
+.col-hdr-row{display:flex;align-items:center;gap:0;padding:4px 7px;background:#f9f8f5;border-bottom:1px solid #e4e2dc}
+.col-hdr-lbl{font-size:8.5px;color:#8a8880;font-weight:600;letter-spacing:.05em;text-transform:uppercase;flex:1}
+.col-hdr-year{display:flex;align-items:center;gap:3px;width:80px;justify-content:flex-end;font-family:monospace;font-size:9.5px;color:#8a8880}
+/* NOTE DRAWER */
+.note-drawer{width:290px;flex-shrink:0;background:#fff;border:1px solid #e4e2dc;border-radius:7px;display:flex;flex-direction:column;overflow:hidden}
+.nd-hd{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-bottom:1px solid #e4e2dc}
+.nd-num{font-family:monospace;font-size:10px;color:#8a8880;margin-bottom:1px}
+.nd-title{font-size:12px;font-weight:500;color:#1a1917}
+.nd-body{padding:11px 12px;overflow-y:auto;flex:1}
+.nd-section{margin-bottom:10px}
+.nd-section-t{font-size:9.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#8a8880;margin-bottom:5px}
+.nd-table{width:100%;font-size:10px;border-collapse:collapse}
+.nd-table th{padding:3px 6px;text-align:right;font-size:8.5px;color:#8a8880;border-bottom:1px solid #e4e2dc}
+.nd-table td{padding:3px 6px;border-bottom:1px solid #f4f3f0;color:#4a4844}
+.nd-table td:first-child{text-align:left;color:#1a1917}
+/* TREE */
+.ts{margin-bottom:6px}
+.thd{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:#f4f3f0;border-radius:5px}
+.tbdy{border:1px solid #e4e2dc;border-radius:0 0 5px 5px;margin-top:1px;background:#fff}
+.trow{display:flex;align-items:center;padding:4px 9px;border-bottom:1px solid #e4e2dc;font-size:10.5px}
+.trow:last-child{border:none}
+.trow.sub{background:#f9f8f5;font-weight:500}
+.trow.note-ref{border-left:2px solid #93c5fd}
+/* VALIDATION */
+.hg{display:flex;align-items:center;gap:12px;padding:10px 13px;background:#f4f3f0;border-radius:7px;margin-bottom:11px}
+.vg{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.vc{background:#fff;border:1px solid #e4e2dc;border-radius:7px;padding:10px}
+.vc.pass{border-left:3px solid #15803d;border-radius:0 7px 7px 0}
+.vc.fail{border-left:3px solid #b91c1c;border-radius:0 7px 7px 0}
+.vc-id{font-family:monospace;font-size:10px;color:#8a8880;margin-bottom:2px}
+.vc-n{font-size:11px;font-weight:500;color:#1a1917;margin-bottom:2px}
+.vc-f{font-family:monospace;font-size:8.5px;color:#8a8880;margin-bottom:4px;line-height:1.3}
+.vc-r{font-size:10px;font-weight:500}
+.ocr-warn{font-size:9px;color:#92400e;background:#fef3c7;border-radius:3px;padding:2px 5px;margin-top:4px;display:inline-block}
+/* EXPORT */
+.tier-sel{display:flex;border:1px solid #ccc9bf;border-radius:5px;overflow:hidden;width:fit-content;margin-bottom:11px}
+.tb2{padding:5px 12px;font-size:10.5px;font-weight:500;color:#4a4844;background:#fff;border:none;border-right:1px solid #ccc9bf}
+.tb2:last-child{border-right:none}
+.tb2.act{background:#1d4ed8;color:#fff}
+.ex-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:11px}
+.ex-card{background:#fff;border:1px solid #e4e2dc;border-radius:7px;overflow:hidden}
+.ex-card.rec{border:2px solid #1d4ed8}
+.ex-card.def{opacity:.55;border-style:dashed}
+.ex-hd{display:flex;align-items:center;gap:8px;padding:9px 11px;border-bottom:1px solid #e4e2dc}
+.ex-ico{width:29px;height:29px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.ex-body{padding:9px 11px}
+.ex-desc{font-size:10px;color:#8a8880;margin-bottom:6px;line-height:1.4}
+.ex-tabs{display:flex;gap:2px;flex-wrap:wrap;margin-top:5px;background:#f4f3f0;padding:3px;border-radius:3px}
+.ex-tab{font-family:monospace;font-size:8px;color:#8a8880;padding:2px 4px;border-radius:2px;background:#fff}
+.ex-tab.hi{background:#1d4ed8;color:#fff}
+.col-pills{display:flex;gap:2px;flex-wrap:wrap;margin-bottom:6px}
+.cp{font-family:monospace;font-size:9px;padding:2px 5px;border-radius:2px;background:#f4f3f0;color:#8a8880}
+.def-note{background:#fef3c7;border:1px solid #d97706;border-radius:4px;padding:5px 8px;font-size:9.5px;color:#92400e;margin-top:7px}
+.rec-pill{background:#dbeafe;color:#1e40af;font-size:9.5px;padding:2px 7px;border-radius:3px;font-weight:500;display:inline-block;margin-bottom:4px}
+.ex-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:10.5px}
+.ex-row{display:flex;justify-content:space-between;align-items:center}
+/* SIDEBAR HELPER */
+.sb-row{display:flex;align-items:center;gap:6px;padding:4px 7px}
+</style>
+</head>
+<body>
+<div class="page-hdr">
+  <div>
+    <div class="page-hdr-t">Financial SpreadX — Demo Mockup v1.1</div>
+    <div class="page-hdr-s">7 screens · All 19 documents · 10-stage pipeline · OCR · Scope detection · Notes entity linking</div>
+  </div>
+  <span class="v-pill">Demo Design v1.1 · For Claude Code</span>
+</div>
+<div class="jumps">
+  <span style="font-size:10px;font-weight:500;color:#8a8880;align-self:center">Jump:</span>
+  <a class="jl" href="#s1">1. Document Library</a>
+  <a class="jl" href="#s2">2. Upload &amp; Classify</a>
+  <a class="jl" href="#s3">3. Review Workbench</a>
+  <a class="jl" href="#s3b">3b. Note Drawer open</a>
+  <a class="jl" href="#s4">4. Statement Tree</a>
+  <a class="jl" href="#s5">5. Validation Dashboard</a>
+  <a class="jl" href="#s6">6. Export Centre</a>
+</div>
+<!-- ═══════════════ SCREEN 1: DOCUMENT LIBRARY ═══════════════ -->
+<div class="blk" id="s1">
+<div class="blk-lbl"><span class="blk-n">1 — Document Library</span><span class="blk-r">/documents · All 19 seeded · OCR indicator column</span></div>
+<div class="frame">
+  <div class="sb">
+    <div class="sb-logo"><div class="sb-m">Financial SpreadX</div><div class="sb-sub">Statement Normalisation</div><div class="sb-demo">Demo v1.1 · 19 docs seeded</div></div>
+    <div class="sb-nav">
+      <div class="sg">Ingestion</div><div class="si"><div class="si-dot" style="background:#60a5fa"></div>Upload</div>
+      <div class="sg">Review</div>
+      <div class="si cur"><div class="si-dot" style="background:#34d399"></div>Documents<span class="si-ct">19</span></div>
+      <div class="si"><div class="si-dot" style="background:#f59e0b"></div>Workbench<span class="si-ct">4</span></div>
+      <div class="si"><div class="si-dot" style="background:#5eead4"></div>Statement Tree</div>
+      <div class="si"><div class="si-dot" style="background:#f87171"></div>Validation<span class="si-ct">2</span></div>
+      <div class="sg">Output</div><div class="si"><div class="si-dot" style="background:#86efac"></div>Export Centre</div>
+    </div>
+    <div class="sb-foot"><div class="sb-row"><div class="av">AS</div><div><div style="font-size:10px;color:rgba(255,255,255,.65)">Anand S.</div><div style="font-size:8px;color:rgba(255,255,255,.3)">Demo session</div></div></div></div>
+  </div>
+  <div class="mn">
+    <div class="tb"><div class="pg-t">Document Library</div><div class="tb-r"><div class="btn bg">+ Upload PDF</div><div class="btn bp">Export Centre</div></div></div>
+    <div class="ct">
+      <div class="sr">
+        <div class="sc"><div class="sl">Total</div><div class="sn">19</div><div class="ss">8 template families</div></div>
+        <div class="sc"><div class="sl">Processed</div><div class="sn">14</div><div class="ss" style="color:#166534">11 auto-approved</div></div>
+        <div class="sc"><div class="sl">Needs review</div><div class="sn" style="color:#92400e">4</div><div class="ss">87 rows flagged</div></div>
+        <div class="sc"><div class="sl">Val. failures</div><div class="sn" style="color:#991b1b">2</div><div class="ss">Click to fix</div></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><div class="card-t">All 19 documents</div><div class="fpills"><div class="fp on">All</div><div class="fp">Review</div><div class="fp">Errors</div><div class="fp">Exported</div></div></div>
+        <table>
+          <thead><tr><th>Company</th><th>Year</th><th>Template</th><th>Scope</th><th>Status</th><th>Health</th><th>OCR</th><th></th></tr></thead>
+          <tbody>
+            <tr><td><div class="co">Aspect Capital Limited</div><div class="co-s">UK Asset Manager</div></td><td>2023</td><td><span class="badge b-teal">T5</span></td><td><span class="badge b-cons" style="font-size:9px;padding:1px 5px">Con.</span></td><td><span class="badge b-amber">Review</span></td><td><div class="hbar"><div class="hf" style="width:74%;background:#b45309"></div></div></td><td style="color:#8a8880;font-size:10px">—</td><td><span class="al">Review →</span></td></tr>
+            <tr><td><div class="co">Aditya Birla Finance</div><div class="co-s">Indian NBFC</div></td><td>2024</td><td><span class="badge b-purple">T3</span></td><td><div style="display:flex;gap:2px"><span class="badge b-cons" style="font-size:9px;padding:1px 5px">Con.</span><span class="badge b-stand" style="font-size:9px;padding:1px 5px">Std.</span></div></td><td><span class="badge b-green">Approved</span></td><td><div class="hbar"><div class="hf" style="width:100%;background:#15803d"></div></div></td><td style="color:#8a8880;font-size:10px">—</td><td><span class="al">Export →</span></td></tr>
+            <tr><td><div class="co">Cash America International</div><div class="co-s">US Pawn Finance</div></td><td>2007</td><td><span class="badge b-blue">T1</span></td><td><span class="badge b-cons" style="font-size:9px;padding:1px 5px">Con.</span></td><td><span class="badge b-green">Approved</span></td><td><div class="hbar"><div class="hf" style="width:100%;background:#15803d"></div></div></td><td style="color:#8a8880;font-size:10px">—</td><td><span class="al">Export →</span></td></tr>
+            <tr><td><div class="co">Freddie Mac</div><div class="co-s">US GSE</div></td><td>2023</td><td><span class="badge b-blue">T1</span></td><td><span class="badge b-cons" style="font-size:9px;padding:1px 5px">Con.</span></td><td><span class="badge b-red">Val. error</span></td><td><div class="hbar"><div class="hf" style="width:55%;background:#b91c1c"></div></div></td><td style="color:#8a8880;font-size:10px">—</td><td><span class="al">Fix →</span></td></tr>
+            <tr><td><div class="co">Fubon Securities</div><div class="co-s">Taiwan Securities</div></td><td>2017</td><td><span class="badge b-teal">T8</span></td><td><span class="badge b-cons" style="font-size:9px;padding:1px 5px">Con.</span></td><td><span class="badge b-amber">Review</span></td><td><div class="hbar"><div class="hf" style="width:68%;background:#b45309"></div></div></td><td><span class="badge b-ocr">3 pg</span></td><td><span class="al">Review →</span></td></tr>
+            <tr><td><div class="co">HDFC Credila Financial</div><div class="co-s">Indian NBFC</div></td><td>2023</td><td><span class="badge b-purple">T3</span></td><td><div style="display:flex;gap:2px"><span class="badge b-cons" style="font-size:9px;padding:1px 5px">Con.</span><span class="badge b-stand" style="font-size:9px;padding:1px 5px">Std.</span></div></td><td><span class="badge b-red">Val. error</span></td><td><div class="hbar"><div class="hf" style="width:45%;background:#b91c1c"></div></div></td><td style="color:#8a8880;font-size:10px">—</td><td><span class="al">Fix →</span></td></tr>
+            <tr><td><div class="co">Babcock &amp; Brown Eifel UK</div><div class="co-s">UK Wind Energy</div></td><td>2008</td><td><span class="badge b-teal">T5</span></td><td><span class="badge b-cons" style="font-size:9px;padding:1px 5px">Con.</span></td><td><span class="badge b-green">Approved</span></td><td><div class="hbar"><div class="hf" style="width:100%;background:#15803d"></div></div></td><td style="color:#8a8880;font-size:10px">—</td><td><span class="al">Export →</span></td></tr>
+            <tr><td><div class="co">Jade Merchant Bank LLP</div><div class="co-s">UK LLP</div></td><td>2021</td><td><span class="badge b-amber">T6</span></td><td><span class="badge b-stand" style="font-size:9px;padding:1px 5px">Std.</span></td><td><span class="badge b-green">Approved</span></td><td><div class="hbar"><div class="hf" style="width:100%;background:#15803d"></div></div></td><td style="color:#8a8880;font-size:10px">—</td><td><span class="al">Export →</span></td></tr>
+            <tr><td><div class="co">Jane Street Group LLC</div><div class="co-s">US HFT / Market Maker</div></td><td>2024</td><td><span class="badge b-blue">T2</span></td><td><span class="badge b-cons" style="font-size:9px;padding:1px 5px">Con.</span></td><td><span class="badge b-amber">Review</span></td><td><div class="hbar"><div class="hf" style="width:62%;background:#b45309"></div></div></td><td style="color:#8a8880;font-size:10px">—</td><td><span class="al">Review →</span></td></tr>
+            <tr><td><div class="co">LaBranche &amp; Co Inc</div><div class="co-s">US Specialist</div></td><td>2008</td><td><span class="badge b-blue">T1</span></td><td><span class="badge b-cons" style="font-size:9px;padding:1px 5px">Con.</span></td><td><span class="badge b-green">Approved</span></td><td><div class="hbar"><div class="hf" style="width:96%;background:#15803d"></div></div></td><td style="color:#8a8880;font-size:10px">—</td><td><span class="al">Export →</span></td></tr>
+            <tr><td><div class="co">L&amp;T Finance Limited</div><div class="co-s">Indian NBFC</div></td><td>2019</td><td><span class="badge b-purple">T3</span></td><td><div style="display:flex;gap:2px"><span class="badge b-cons" style="font-size:9px;padding:1px 5px">Con.</span><span class="badge b-stand" style="font-size:9px;padding:1px 5px">Std.</span></div></td><td><span class="badge b-green">Approved</span></td><td><div class="hbar"><div class="hf" style="width:98%;background:#15803d"></div></div></td><td style="color:#8a8880;font-size:10px">—</td><td><span class="al">Export →</span></td></tr>
+            <tr><td><div class="co">Orient Securities (DFZQ)</div><div class="co-s">China Securities</div></td><td>2024</td><td><span class="badge b-teal">T8</span></td><td><span class="badge b-cons" style="font-size:9px;padding:1px 5px">Con.</span></td><td><span class="badge b-green">Approved</span></td><td><div class="hbar"><div class="hf" style="width:100%;background:#15803d"></div></div></td><td style="color:#8a8880;font-size:10px">—</td><td><span class="al">Export →</span></td></tr>
+            <tr><td><div class="co">Paratus AMC / Foundation</div><div class="co-s">UK Mortgage Lender</div></td><td>2024</td><td><span class="badge b-ora">T7</span></td><td><span class="badge b-cons" style="font-size:9px;padding:1px 5px">Con.</span></td><td><span class="badge b-amber">Review</span></td><td><div class="hbar"><div class="hf" style="width:70%;background:#b45309"></div></div></td><td><span class="badge b-ocr">2 pg</span></td><td><span class="al">Review →</span></td></tr>
+            <tr><td><div class="co">Rathbone Group</div><div class="co-s">UK Wealth Manager</div></td><td>2024</td><td><span class="badge b-teal">T5</span></td><td><span class="badge b-cons" style="font-size:9px;padding:1px 5px">Con.</span></td><td><span class="badge b-green">Approved</span></td><td><div class="hbar"><div class="hf" style="width:100%;background:#15803d"></div></div></td><td style="color:#8a8880;font-size:10px">—</td><td><span class="al">Export →</span></td></tr>
+            <tr><td><div class="co">Southern Pacific Mortgage</div><div class="co-s">UK Mortgage</div></td><td>2021</td><td><span class="badge b-ora">T7</span></td><td><span class="badge b-cons" style="font-size:9px;padding:1px 5px">Con.</span></td><td><span class="badge b-green">Approved</span></td><td><div class="hbar"><div class="hf" style="width:92%;background:#15803d"></div></div></td><td style="color:#8a8880;font-size:10px">—</td><td><span class="al">Export →</span></td></tr>
+            <tr><td><div class="co">Sterling Biotech Limited</div><div class="co-s">India Biotech</div></td><td>2008</td><td><span class="badge b-purple">T4</span></td><td><span class="badge b-cons" style="font-size:9px;padding:1px 5px">Con.</span></td><td><span class="badge b-green">Approved</span></td><td><div class="hbar"><div class="hf" style="width:88%;background:#15803d"></div></div></td><td style="color:#8a8880;font-size:10px">—</td><td><span class="al">Export →</span></td></tr>
+            <tr><td><div class="co">Sun Hung Kai &amp; Co</div><div class="co-s">HK Financial</div></td><td>2024</td><td><span class="badge b-teal">T8</span></td><td><span class="badge b-cons" style="font-size:9px;padding:1px 5px">Con.</span></td><td><span class="badge b-green">Approved</span></td><td><div class="hbar"><div class="hf" style="width:95%;background:#15803d"></div></div></td><td style="color:#8a8880;font-size:10px">—</td><td><span class="al">Export →</span></td></tr>
+            <tr><td><div class="co">TFG Asset Mgmt UK LLP</div><div class="co-s">UK LLP</div></td><td>2024</td><td><span class="badge b-amber">T6</span></td><td><span class="badge b-stand" style="font-size:9px;padding:1px 5px">Std.</span></td><td><span class="badge b-green">Approved</span></td><td><div class="hbar"><div class="hf" style="width:100%;background:#15803d"></div></div></td><td style="color:#8a8880;font-size:10px">—</td><td><span class="al">Export →</span></td></tr>
+            <tr><td><div class="co">TPG Group Holdings LP</div><div class="co-s">US Alt Investment</div></td><td>2022</td><td><span class="badge b-blue">T2</span></td><td><span class="badge b-cons" style="font-size:9px;padding:1px 5px">Con.</span></td><td><span class="badge b-green">Approved</span></td><td><div class="hbar"><div class="hf" style="width:90%;background:#15803d"></div></div></td><td style="color:#8a8880;font-size:10px">—</td><td><span class="al">Export →</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<!-- ═══════════════ SCREEN 2: UPLOAD ═══════════════ -->
+<div class="blk" id="s2">
+<div class="blk-lbl">
+  <span class="blk-n">2 — Upload &amp; Classify</span>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span class="blk-new">10-stage pipeline</span>
+    <span class="blk-new">OCR branch</span>
+    <span class="blk-r">/upload · Fubon Securities 2017 processing (3 scanned pages detected)</span>
+  </div>
+</div>
+<div class="frame">
+  <div class="sb">
+    <div class="sb-logo"><div class="sb-m">Financial SpreadX</div><div class="sb-sub">Statement Normalisation</div><div class="sb-demo">Demo v1.1</div></div>
+    <div class="sb-nav">
+      <div class="sg">Ingestion</div><div class="si cur"><div class="si-dot" style="background:#60a5fa"></div>Upload</div>
+      <div class="sg">Review</div>
+      <div class="si"><div class="si-dot" style="background:#34d399"></div>Documents<span class="si-ct">19</span></div>
+      <div class="si"><div class="si-dot" style="background:#f59e0b"></div>Workbench<span class="si-ct">4</span></div>
+      <div class="si"><div class="si-dot" style="background:#5eead4"></div>Statement Tree</div>
+      <div class="si"><div class="si-dot" style="background:#f87171"></div>Validation<span class="si-ct">2</span></div>
+      <div class="sg">Output</div><div class="si"><div class="si-dot" style="background:#86efac"></div>Export Centre</div>
+    </div>
+    <div class="sb-foot"><div class="sb-row"><div class="av">AS</div><div><div style="font-size:10px;color:rgba(255,255,255,.65)">Anand S.</div></div></div></div>
+  </div>
+  <div class="mn">
+    <div class="tb"><div class="pg-t">Upload &amp; Classify</div><div class="tb-r"><div class="btn bg">+ Upload PDF</div><div class="btn bp">Export Centre</div></div></div>
+    <div class="ct">
+      <div class="sync-banner"><div class="pulse"></div><strong style="margin-right:4px">Synchronous processing</strong> — 10-stage pipeline runs in one request. ~30–90 sec. Spinner shown while processing. No background queue.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">
+        <div>
+          <div class="drop-z">
+            <div style="width:32px;height:32px;border-radius:6px;background:#dbeafe;color:#1e40af;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:15px;font-weight:700">+</div>
+            <div style="font-size:12px;font-weight:600;color:#1a1917;margin-bottom:2px">Drop PDF here or click to browse</div>
+            <div style="font-size:10.5px;color:#8a8880;margin-bottom:10px">Single PDF · max 50 MB</div>
+            <div class="btn bp" style="display:inline-flex">Choose file</div>
+          </div>
+          <!-- 10-stage pipeline card -->
+          <div class="card" style="margin-bottom:10px">
+            <div class="card-h"><div class="card-t">Processing pipeline — 10 stages</div></div>
+            <div style="padding:9px 12px">
+              <div class="pipe-step"><div class="pipe-num ps-done">✓</div><div class="pipe-text">Upload to Vercel Blob<div class="pipe-sub">Fubon_Securities_Co_Ltd_2017.pdf · 18.4 MB</div></div></div>
+              <div class="pipe-step"><div class="pipe-num ps-done">✓</div><div class="pipe-text">Per-page classification (digital / scanned / hybrid)<div class="pipe-sub" style="color:#92400e;font-weight:500">68 digital · 3 scanned · 0 hybrid</div></div></div>
+              <div class="pipe-step"><div class="pipe-num ps-done">✓</div><div class="pipe-text">Financial page filtering<div class="pipe-sub">71 → 9 pages (87% reduction). Note pages: 4</div></div></div>
+              <div class="pipe-step"><div class="pipe-num ps-done">✓</div><div class="pipe-text">Template classification — Claude<div class="pipe-sub">T8 IFRS Asia · NTD thousands · 91% confidence · Consolidated</div></div></div>
+              <div class="pipe-step">
+                <div class="pipe-num ps-running">…</div>
+                <div class="pipe-text">Row extraction + OCR
+                  <div class="pipe-sub">6 digital pages via extractStatement(). <span style="color:#92400e;font-weight:500">3 scanned pages rasterising → Claude Vision…</span></div>
+                </div>
+              </div>
+              <div class="pipe-step"><div class="pipe-num ps-pending">6</div><div class="pipe-text" style="color:#8a8880">Note entity extraction (referenced notes only)</div></div>
+              <div class="pipe-step"><div class="pipe-num ps-pending">7</div><div class="pipe-text" style="color:#8a8880">Mapping engine M1–M9</div></div>
+              <div class="pipe-step"><div class="pipe-num ps-pending">8</div><div class="pipe-text" style="color:#8a8880">Entity linking — notes ↔ rows</div></div>
+              <div class="pipe-step"><div class="pipe-num ps-pending">9</div><div class="pipe-text" style="color:#8a8880">Validation V01–V12 (actual columns only)</div></div>
+              <div class="pipe-step"><div class="pipe-num ps-pending">10</div><div class="pipe-text" style="color:#8a8880">Status update + review queue</div></div>
+            </div>
+          </div>
+          <!-- Classification result -->
+          <div class="card" style="padding:12px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px">
+              <div class="conf-ring">91%</div>
+              <div>
+                <div style="font-size:12.5px;font-weight:600;color:#1a1917">T8 — IFRS Asia · Securities Firm</div>
+                <div style="font-size:10px;color:#8a8880">Taiwan · NTD thousands · Consolidated</div>
+              </div>
+            </div>
+            <div class="cls-row"><span class="cls-k">Document</span><span class="cls-v" style="font-family:monospace;font-size:10px">Fubon_Securities_Co_Ltd_2017.pdf</span></div>
+            <div class="cls-row"><span class="cls-k">Currency / Scale</span><span class="cls-v"><span class="badge b-gray">NTD</span>&nbsp;Thousands</span></div>
+            <div class="cls-row"><span class="cls-k">Statements found</span><span class="cls-v" style="gap:3px"><span class="badge b-blue">Income</span><span class="badge b-blue">Balance</span><span class="badge b-blue">Cash flow</span></span></div>
+            <div class="cls-row"><span class="cls-k">Statement scope</span><span class="cls-v"><span class="badge b-cons">Consolidated</span></span></div>
+            <div class="cls-row"><span class="cls-k">Scanned pages</span><span class="cls-v" style="color:#92400e">3 pages → OCR via Claude Vision</span></div>
+            <div class="cls-row"><span class="cls-k">Columns</span><span class="cls-v" style="gap:3px"><span class="badge b-actual">2017 actual</span><span class="badge b-actual">2016 actual</span></span></div>
+            <div class="cls-row"><span class="cls-k">Note pages</span><span class="cls-v">4 note pages identified (Notes 3, 7, 12, 21)</span></div>
+          </div>
+        </div>
+        <!-- Recent uploads -->
+        <div class="card">
+          <div class="card-h"><div class="card-t">Recently processed</div></div>
+          <div class="up-row"><div class="up-ico" style="background:#dcfce7;color:#166534">✓</div><div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:500;color:#1a1917">Orient Securities 2024.pdf</div><div style="font-size:9.5px;color:#8a8880">T8 · RMB · Con. · 220 pg → 35 sent</div></div><span class="badge b-green">Done</span></div>
+          <div class="up-row"><div class="up-ico" style="background:#dcfce7;color:#166534">✓</div><div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:500;color:#1a1917">TPG Group Holdings 2022.pdf</div><div style="font-size:9.5px;color:#8a8880">T2 · USD · Con. · 82 pg → 18 sent</div></div><span class="badge b-green">Done</span></div>
+          <div class="up-row"><div class="up-ico" style="background:#fee2e2;color:#991b1b">!</div><div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:500;color:#1a1917">HDFC Credila 2023.pdf</div><div style="font-size:9.5px;color:#8a8880">T3 · INR · Con.+Std. · V01, V05 failed</div></div><span class="badge b-red">Error</span></div>
+          <div class="up-row"><div class="up-ico" style="background:#fef3c7;color:#92400e">~</div><div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:500;color:#1a1917">Jane Street Group LLC 2024.pdf</div><div style="font-size:9.5px;color:#8a8880">T2 · USD · Con. · 11 rows flagged</div></div><span class="badge b-amber">Review</span></div>
+          <div class="up-row"><div class="up-ico" style="background:#dcfce7;color:#166534">✓</div><div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:500;color:#1a1917">Rathbone Group 2024.pdf</div><div style="font-size:9.5px;color:#8a8880">T5 · GBP · Con. · 156 pg → 22 sent</div></div><span class="badge b-green">Done</span></div>
+          <div class="up-row"><div class="up-ico" style="background:#fef3c7;color:#92400e" style="position:relative">~</div><div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:500;color:#1a1917">Paratus AMC 2024.pdf <span class="badge b-ocr" style="margin-left:4px">OCR 2pg</span></div><div style="font-size:9.5px;color:#8a8880">T7 · GBP · Con. · 6 flagged</div></div><span class="badge b-amber">Review</span></div>
+          <div class="up-row"><div class="up-ico" style="background:#dcfce7;color:#166534">✓</div><div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:500;color:#1a1917">L&amp;T Finance 2019.pdf</div><div style="font-size:9.5px;color:#8a8880">T3 · INR · Con.+Std. · 118 pg → 28 sent</div></div><span class="badge b-green">Done</span></div>
+          <div class="up-row"><div class="up-ico" style="background:#ede9fe;color:#4c1d95">✓</div><div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:500;color:#1a1917">Sterling Biotech 2008.pdf</div><div style="font-size:9.5px;color:#8a8880">T4 · INR · Con. · 44 pg → 11 sent</div></div><span class="badge b-green">Done</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<!-- ═══════════════ SCREEN 3: REVIEW WORKBENCH ═══════════════ -->
+<div class="blk" id="s3">
+<div class="blk-lbl">
+  <span class="blk-n">3 — Review Workbench</span>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span class="blk-new">Scope badge</span><span class="blk-new">Column type badges</span><span class="blk-new">Note N → link</span><span class="blk-new">OCR badge</span>
+    <span class="blk-r">/review/[id] · Fubon Securities 2017 · T8 · Consolidated Balance Sheet</span>
+  </div>
+</div>
+<div class="frame">
+  <div class="sb">
+    <div class="sb-logo"><div class="sb-m">Financial SpreadX</div><div class="sb-sub">Statement Normalisation</div><div class="sb-demo">Demo v1.1</div></div>
+    <div class="sb-nav">
+      <div class="sg">Ingestion</div><div class="si"><div class="si-dot" style="background:#60a5fa"></div>Upload</div>
+      <div class="sg">Review</div>
+      <div class="si"><div class="si-dot" style="background:#34d399"></div>Documents<span class="si-ct">19</span></div>
+      <div class="si cur"><div class="si-dot" style="background:#f59e0b"></div>Workbench<span class="si-ct">4</span></div>
+      <div class="si"><div class="si-dot" style="background:#5eead4"></div>Statement Tree</div>
+      <div class="si"><div class="si-dot" style="background:#f87171"></div>Validation<span class="si-ct">2</span></div>
+      <div class="sg">Output</div><div class="si"><div class="si-dot" style="background:#86efac"></div>Export Centre</div>
+    </div>
+    <div class="sb-foot"><div class="sb-row"><div class="av">AS</div><div><div style="font-size:10px;color:rgba(255,255,255,.65)">Anand S.</div></div></div></div>
+  </div>
+  <div class="mn">
+    <div class="tb">
+      <div style="display:flex;align-items:center">
+        <span class="pg-t">Review Workbench</span><span class="pg-s">· Fubon Securities 2017 · Balance Sheet</span>
+        <span class="badge b-cons" style="margin-left:8px">Consolidated</span>
+        <div class="scope-pills" style="margin-left:8px"><div class="scope-btn act">Consolidated</div><div class="scope-btn">All</div></div>
+      </div>
+      <div class="tb-r"><div class="btn bg">Approve ≥90%</div><div class="btn bg">Tree view</div><div class="btn bp">Submit</div></div>
+    </div>
+    <div class="ct">
+      <div class="rev-sp">
+        <!-- PDF pane -->
+        <div class="pdf-pane">
+          <div class="pdf-tb2"><span style="font-size:11px;font-weight:500;color:#1a1917">Page 28 / 71</span><div style="display:flex;gap:3px"><div class="btn bg" style="padding:2px 6px;font-size:10px">‹</div><div class="btn bg" style="padding:2px 6px;font-size:10px">›</div></div></div>
+          <div class="pdf-pg">
+            <div class="pdf-inner">
+              <div style="font-weight:700;font-size:8px;margin-bottom:5px">Consolidated Balance Sheets</div>
+              <div style="font-size:6.5px;color:#6b7280;margin-bottom:6px">As of December 31, 2017 and 2016 (NTD thousands)</div>
+              <table style="width:100%;font-size:6.5px;border-collapse:collapse">
+                <tr style="border-bottom:1px solid #e5e7eb"><td width="56%">Assets</td><td style="text-align:right;font-weight:600;color:#6b7280">2017</td><td style="text-align:right;font-weight:600;color:#6b7280">2016</td></tr>
+                <tr><td style="padding:1.5px 0"><span class="pdf-hl">Cash and cash equivalents</span></td><td style="text-align:right;padding:1px 2px">12,847,391</td><td style="text-align:right;padding:1px 2px">9,312,847</td></tr>
+                <tr><td style="padding:1.5px 0">Financial assets at FVTPL</td><td style="text-align:right;padding:1px 2px">48,291,033</td><td style="text-align:right;padding:1px 2px">41,882,144</td></tr>
+                <tr><td style="padding:1.5px 0">Receivables (Note 7)</td><td style="text-align:right;padding:1px 2px">8,441,207</td><td style="text-align:right;padding:1px 2px">7,229,884</td></tr>
+                <tr style="background:#fffbeb"><td style="padding:1.5px 0">Customer margin accounts</td><td style="text-align:right;padding:1px 2px">15,993,441</td><td style="text-align:right;padding:1px 2px">13,441,008</td></tr>
+                <tr style="border-top:1px solid #e5e7eb"><td style="padding:1.5px 0;font-weight:700">Total assets</td><td style="text-align:right;padding:1px 2px;font-weight:700">85,573,072</td><td style="text-align:right;padding:1px 2px;font-weight:700">71,865,883</td></tr>
+              </table>
+            </div>
+          </div>
+          <div class="pdf-nv"><span>Highlighted: row 1</span><span>100%</span></div>
+        </div>
+        <!-- Mapping pane -->
+        <div class="mp-pane">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div class="fpills"><div class="fp on">All rows</div><div class="fp">Flagged (5)</div><div class="fp">Auto-approved</div></div>
+            <div style="font-size:10px;color:#8a8880">28 rows · 5 flagged · T8 template · Consolidated</div>
+          </div>
+          <div class="card">
+            <!-- Column type header row -->
+            <div class="col-hdr-row">
+              <span class="col-hdr-lbl">Row</span>
+              <span class="col-hdr-year"><span class="badge b-actual">2017</span></span>
+              <span class="col-hdr-year"><span class="badge b-actual">2016</span></span>
+              <span style="width:55px;text-align:right;font-size:8.5px;color:#8a8880">Conf.</span>
+              <span style="width:22px;text-align:center;font-size:8.5px;color:#8a8880">Val.</span>
+              <span style="width:50px"></span>
+            </div>
+            <table class="rtbl">
+              <thead><tr><th>Raw label</th><th>Canonical field</th><th style="text-align:right">2017</th><th style="text-align:right">2016</th><th>Conf.</th><th>Val.</th><th></th></tr></thead>
+              <tbody>
+                <tr><td><div class="raw-l">Cash and cash equivalents</div></td><td><div class="cf-n">cash_and_equivalents</div></td><td style="font-family:monospace;font-size:10px;text-align:right">12,847,391</td><td style="font-family:monospace;font-size:10px;text-align:right;color:#8a8880">9,312,847</td><td><div class="cb-w"><div class="cb"><div class="cbf" style="width:97%;background:#15803d"></div></div><span style="font-size:9px;color:#15803d">97%</span></div></td><td style="color:#15803d;font-size:11px">✓</td><td><span class="al">Edit</span></td></tr>
+                <tr><td><div class="raw-l">Financial assets at FVTPL</div></td><td><div class="cf-n">financial_assets_fvtpl</div></td><td style="font-family:monospace;font-size:10px;text-align:right">48,291,033</td><td style="font-family:monospace;font-size:10px;text-align:right;color:#8a8880">41,882,144</td><td><div class="cb-w"><div class="cb"><div class="cbf" style="width:93%;background:#15803d"></div></div><span style="font-size:9px;color:#15803d">93%</span></div></td><td style="color:#15803d;font-size:11px">✓</td><td><span class="al">Edit</span></td></tr>
+                <tr><td><div class="raw-l">Receivables (Note 7)</div></td><td><div class="cf-n">trade_receivables</div></td><td style="font-family:monospace;font-size:10px;text-align:right">8,441,207</td><td style="font-family:monospace;font-size:10px;text-align:right;color:#8a8880">7,229,884</td><td><div class="cb-w"><div class="cb"><div class="cbf" style="width:91%;background:#15803d"></div></div><span style="font-size:9px;color:#15803d">91%</span></div></td><td style="color:#15803d;font-size:11px">✓</td><td><div style="display:flex;align-items:center;gap:4px"><span class="note-link">Note 7 →</span></div></td></tr>
+                <tr class="flagged"><td><div class="raw-l" style="display:flex;align-items:center;gap:3px">Customer margin accounts<span class="b-ocr">OCR</span></div></td><td><select style="font-size:10px;padding:2px 4px;border-radius:3px;border:1px solid #f59e0b;background:#fff;color:#1a1917"><option>customer_margin_accounts</option><option>other_financial_assets</option><option>receivables_clients</option></select></td><td style="font-family:monospace;font-size:10px;text-align:right">15,993,441</td><td style="font-family:monospace;font-size:10px;text-align:right;color:#8a8880">13,441,008</td><td><div class="cb-w"><div class="cb"><div class="cbf" style="width:67%;background:#b45309"></div></div><span style="font-size:9px;color:#b45309">67%</span></div></td><td style="color:#b45309;font-size:11px">~</td><td><span class="al">Explain</span></td></tr>
+                <tr class="flagged"><td><div class="raw-l">Securities lending receivables</div></td><td><select style="font-size:10px;padding:2px 4px;border-radius:3px;border:1px solid #f59e0b;background:#fff;color:#1a1917"><option>securities_lending_receivables</option><option>other_receivables</option></select></td><td style="font-family:monospace;font-size:10px;text-align:right">3,991,204</td><td style="font-family:monospace;font-size:10px;text-align:right;color:#8a8880">2,887,114</td><td><div class="cb-w"><div class="cb"><div class="cbf" style="width:74%;background:#b45309"></div></div><span style="font-size:9px;color:#b45309">74%</span></div></td><td style="color:#b45309;font-size:11px">~</td><td><span class="al">Explain</span></td></tr>
+                <tr><td><div class="raw-l">Investment properties</div></td><td><div class="cf-n">investment_properties</div></td><td style="font-family:monospace;font-size:10px;text-align:right">2,184,331</td><td style="font-family:monospace;font-size:10px;text-align:right;color:#8a8880">1,994,221</td><td><div class="cb-w"><div class="cb"><div class="cbf" style="width:88%;background:#15803d"></div></div><span style="font-size:9px;color:#15803d">88%</span></div></td><td style="color:#15803d;font-size:11px">✓</td><td><span class="al">Edit</span></td></tr>
+                <tr class="flagged"><td><div class="raw-l" style="display:flex;align-items:center;gap:3px">PP&amp;E (Note 12)<span class="b-ocr">OCR</span></div></td><td><div class="cf-n">property_plant_equipment</div></td><td style="font-family:monospace;font-size:10px;text-align:right">1,824,116</td><td style="font-family:monospace;font-size:10px;text-align:right;color:#8a8880">1,661,004</td><td><div class="cb-w"><div class="cb"><div class="cbf" style="width:81%;background:#15803d"></div></div><span style="font-size:9px;color:#15803d">81%</span></div></td><td style="color:#15803d;font-size:11px">✓</td><td><div style="display:flex;align-items:center;gap:4px"><span class="note-link">Note 12 →</span></div></td></tr>
+                <tr><td><div class="raw-l">Total assets</div></td><td><div class="cf-n">total_assets</div></td><td style="font-family:monospace;font-size:10px;text-align:right;font-weight:600">85,573,072</td><td style="font-family:monospace;font-size:10px;text-align:right;color:#8a8880;font-weight:600">71,865,883</td><td><div class="cb-w"><div class="cb"><div class="cbf" style="width:99%;background:#15803d"></div></div><span style="font-size:9px;color:#15803d">99%</span></div></td><td style="color:#15803d;font-size:11px">✓</td><td><span class="al">Edit</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="padding:7px 11px;background:#f9f8f5;border:1px solid #e4e2dc;border-radius:6px;font-size:10.5px;color:#8a8880">
+            <strong style="color:#1a1917">OCR note:</strong> 3 rows extracted from scanned pages (marked <span class="b-ocr">OCR</span>). Confidence penalty applied. Verify source manually before approving.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<!-- ═══════════════ SCREEN 3b: REVIEW WORKBENCH + NOTE DRAWER ═══════════════ -->
+<div class="blk" id="s3b">
+<div class="blk-lbl">
+  <span class="blk-n">3b — Review Workbench · Note Drawer Open</span>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span class="blk-new">NoteDrawer (320px)</span>
+    <span class="blk-r">/review/[id] · User clicked "Note 12 →" on PP&amp;E row · Drawer shows Note 12 content + sub-table</span>
+  </div>
+</div>
+<div class="frame">
+  <div class="sb">
+    <div class="sb-logo"><div class="sb-m">Financial SpreadX</div><div class="sb-sub">Statement Normalisation</div><div class="sb-demo">Demo v1.1</div></div>
+    <div class="sb-nav">
+      <div class="sg">Ingestion</div><div class="si"><div class="si-dot" style="background:#60a5fa"></div>Upload</div>
+      <div class="sg">Review</div>
+      <div class="si"><div class="si-dot" style="background:#34d399"></div>Documents<span class="si-ct">19</span></div>
+      <div class="si cur"><div class="si-dot" style="background:#f59e0b"></div>Workbench<span class="si-ct">4</span></div>
+      <div class="si"><div class="si-dot" style="background:#5eead4"></div>Statement Tree</div>
+      <div class="si"><div class="si-dot" style="background:#f87171"></div>Validation<span class="si-ct">2</span></div>
+      <div class="sg">Output</div><div class="si"><div class="si-dot" style="background:#86efac"></div>Export Centre</div>
+    </div>
+    <div class="sb-foot"><div class="sb-row"><div class="av">AS</div><div><div style="font-size:10px;color:rgba(255,255,255,.65)">Anand S.</div></div></div></div>
+  </div>
+  <div class="mn">
+    <div class="tb">
+      <div style="display:flex;align-items:center">
+        <span class="pg-t">Review Workbench</span><span class="pg-s">· Fubon Securities 2017 · Balance Sheet</span>
+        <span class="badge b-cons" style="margin-left:8px">Consolidated</span>
+      </div>
+      <div class="tb-r"><div class="btn bg">Approve ≥90%</div><div class="btn bg">Tree view</div><div class="btn bp">Submit</div></div>
+    </div>
+    <div class="ct">
+      <div style="display:flex;gap:9px">
+        <!-- PDF pane (narrowed when drawer open) -->
+        <div style="width:185px;flex-shrink:0;background:#fff;border:1px solid #e4e2dc;border-radius:7px;overflow:hidden;display:flex;flex-direction:column">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-bottom:1px solid #e4e2dc">
+            <span style="font-size:10.5px;font-weight:500;color:#1a1917">Pg 28 / 71</span>
+            <div style="display:flex;gap:2px"><div class="btn bg" style="padding:2px 5px;font-size:9.5px">‹</div><div class="btn bg" style="padding:2px 5px;font-size:9.5px">›</div></div>
+          </div>
+          <div style="background:#64748b;flex:1;min-height:200px;position:relative">
+            <div style="background:#fff;position:absolute;inset:6px;padding:8px;font-size:5.5px;line-height:1.5;color:#374151;overflow:hidden;border-radius:2px">
+              <div style="font-weight:700;font-size:7px;margin-bottom:3px">Balance Sheets</div>
+              <table style="width:100%;font-size:5.5px;border-collapse:collapse">
+                <tr><td>Cash and equiv</td><td style="text-align:right">12,847,391</td></tr>
+                <tr><td>Financial assets FVTPL</td><td style="text-align:right">48,291,033</td></tr>
+                <tr><td>Receivables (Note 7)</td><td style="text-align:right">8,441,207</td></tr>
+                <tr style="background:#fffbeb"><td>Customer margin accts</td><td style="text-align:right">15,993,441</td></tr>
+                <tr style="background:rgba(251,191,36,.35)"><td>PP&amp;E (Note 12)</td><td style="text-align:right">1,824,116</td></tr>
+                <tr style="font-weight:700;border-top:1px solid #e5e7eb"><td>Total assets</td><td style="text-align:right">85,573,072</td></tr>
+              </table>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 8px;border-top:1px solid #e4e2dc;font-size:9px;color:#8a8880"><span>Highlighted: PP&amp;E</span><span class="al" style="font-size:9px">Go to PDF pg</span></div>
+        </div>
+        <!-- Mapping pane (narrower) -->
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px">
+          <div class="card">
+            <div class="col-hdr-row">
+              <span class="col-hdr-lbl">Row</span>
+              <span class="col-hdr-year"><span class="badge b-actual">2017</span></span>
+              <span class="col-hdr-year"><span class="badge b-actual">2016</span></span>
+              <span style="width:50px;font-size:8.5px;color:#8a8880;text-align:right">Conf.</span>
+              <span style="width:20px;font-size:8.5px;color:#8a8880;text-align:center">Val.</span>
+              <span style="width:55px"></span>
+            </div>
+            <table class="rtbl">
+              <thead><tr><th>Raw label</th><th>Canonical field</th><th style="text-align:right">2017</th><th style="text-align:right">2016</th><th>Conf.</th><th></th><th></th></tr></thead>
+              <tbody>
+                <tr><td><div class="raw-l">Cash and cash equiv.</div></td><td><div class="cf-n" style="font-size:10px">cash_and_equivalents</div></td><td style="font-family:monospace;font-size:9.5px;text-align:right">12,847,391</td><td style="font-family:monospace;font-size:9.5px;text-align:right;color:#8a8880">9,312,847</td><td><div class="cb-w"><div class="cb"><div class="cbf" style="width:97%;background:#15803d"></div></div><span style="font-size:9px;color:#15803d">97%</span></div></td><td style="color:#15803d;font-size:10px">✓</td><td><span class="al" style="font-size:9.5px">Edit</span></td></tr>
+                <tr><td><div class="raw-l">Receivables (Note 7)</div></td><td><div class="cf-n" style="font-size:10px">trade_receivables</div></td><td style="font-family:monospace;font-size:9.5px;text-align:right">8,441,207</td><td style="font-family:monospace;font-size:9.5px;text-align:right;color:#8a8880">7,229,884</td><td><div class="cb-w"><div class="cb"><div class="cbf" style="width:91%;background:#15803d"></div></div><span style="font-size:9px;color:#15803d">91%</span></div></td><td style="color:#15803d;font-size:10px">✓</td><td><span class="note-link" style="font-size:9.5px">Note 7 →</span></td></tr>
+                <tr class="flagged" style="background:#dbeafe"><td><div class="raw-l" style="display:flex;align-items:center;gap:2px">PP&amp;E (Note 12)<span class="b-ocr">OCR</span></div></td><td><div class="cf-n" style="font-size:10px">property_plant_equipment</div></td><td style="font-family:monospace;font-size:9.5px;text-align:right">1,824,116</td><td style="font-family:monospace;font-size:9.5px;text-align:right;color:#8a8880">1,661,004</td><td><div class="cb-w"><div class="cb"><div class="cbf" style="width:81%;background:#15803d"></div></div><span style="font-size:9px;color:#15803d">81%</span></div></td><td style="color:#15803d;font-size:10px">✓</td><td><span class="note-link" style="font-size:9.5px;color:#1d4ed8;font-weight:600;text-decoration:underline">Note 12 →</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <!-- NOTE DRAWER (320px, slides in from right) -->
+        <div class="note-drawer">
+          <div class="nd-hd">
+            <div><div class="nd-num">Note 12 · pp. 48–51</div><div class="nd-title">Property, Plant and Equipment</div></div>
+            <div style="display:flex;gap:5px">
+              <div class="btn bg" style="font-size:9.5px;padding:3px 8px">View in PDF</div>
+              <div class="btn bg" style="font-size:9.5px;padding:3px 8px">✕</div>
+            </div>
+          </div>
+          <div style="padding:8px 12px;background:#f9f8f5;border-bottom:1px solid #e4e2dc;font-size:10.5px;color:#4a4844;line-height:1.5">
+            Discloses the cost, accumulated depreciation and carrying amount of PP&amp;E components. Land is not depreciated. Useful lives: Buildings 50y, IT equipment 3–5y, Office equipment 5–10y.
+          </div>
+          <div class="nd-body">
+            <div class="nd-section">
+              <div class="nd-section-t">Carrying amount breakdown (NTD thousands)</div>
+              <table class="nd-table">
+                <tr><th style="text-align:left">Component</th><th>2017</th><th>2016</th></tr>
+                <tr><td>Land</td><td style="text-align:right">812,441</td><td style="text-align:right">812,441</td></tr>
+                <tr><td>Buildings</td><td style="text-align:right">440,228</td><td style="text-align:right">391,174</td></tr>
+                <tr><td>IT equipment</td><td style="text-align:right">314,892</td><td style="text-align:right">298,441</td></tr>
+                <tr><td>Office equipment</td><td style="text-align:right">109,441</td><td style="text-align:right">87,224</td></tr>
+                <tr><td>Leasehold improvements</td><td style="text-align:right">147,114</td><td style="text-align:right">71,724</td></tr>
+                <tr style="font-weight:600;border-top:1px solid #e4e2dc"><td>Total carrying amount</td><td style="text-align:right">1,824,116</td><td style="text-align:right">1,661,004</td></tr>
+              </table>
+            </div>
+            <div class="nd-section">
+              <div class="nd-section-t">Referenced by</div>
+              <div style="font-size:10.5px;color:#4a4844">1 row in Balance Sheet → <span class="cf-n">property_plant_equipment</span></div>
+            </div>
+            <div class="nd-section">
+              <div style="font-size:10px;color:#8a8880">Extracted from 4 pages (pp. 48–51) via <span class="b-ocr">Claude Vision</span> — scanned pages</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<!-- ═══════════════ SCREEN 4: STATEMENT TREE ═══════════════ -->
+<div class="blk" id="s4">
+<div class="blk-lbl">
+  <span class="blk-n">4 — Statement Tree</span>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span class="blk-new">Scope selector</span><span class="blk-new">Multi-year columns</span><span class="blk-new">Column type badges</span><span class="blk-new">Notes Index accordion</span>
+    <span class="blk-r">/review/[id]/tree · HDFC Credila 2023 · T3 Ind AS · Consolidated + Standalone · INR Lakhs</span>
+  </div>
+</div>
+<div class="frame">
+  <div class="sb">
+    <div class="sb-logo"><div class="sb-m">Financial SpreadX</div><div class="sb-sub">Statement Normalisation</div><div class="sb-demo">Demo v1.1</div></div>
+    <div class="sb-nav">
+      <div class="sg">Ingestion</div><div class="si"><div class="si-dot" style="background:#60a5fa"></div>Upload</div>
+      <div class="sg">Review</div>
+      <div class="si"><div class="si-dot" style="background:#34d399"></div>Documents<span class="si-ct">19</span></div>
+      <div class="si"><div class="si-dot" style="background:#f59e0b"></div>Workbench<span class="si-ct">4</span></div>
+      <div class="si cur"><div class="si-dot" style="background:#5eead4"></div>Statement Tree</div>
+      <div class="si"><div class="si-dot" style="background:#f87171"></div>Validation<span class="si-ct">2</span></div>
+      <div class="sg">Output</div><div class="si"><div class="si-dot" style="background:#86efac"></div>Export Centre</div>
+    </div>
+    <div class="sb-foot"><div class="sb-row"><div class="av">AS</div><div><div style="font-size:10px;color:rgba(255,255,255,.65)">Anand S.</div></div></div></div>
+  </div>
+  <div class="mn">
+    <div class="tb">
+      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px">
+        <span class="pg-t">Statement Tree</span><span class="pg-s">· HDFC Credila 2023 · INR Lakhs</span>
+        <div class="scope-pills"><div class="scope-btn act">Consolidated</div><div class="scope-btn">Standalone</div><div class="scope-btn">Both</div></div>
+        <div style="display:flex;gap:4px;margin-left:4px">
+          <span style="display:flex;align-items:center;gap:3px;font-size:10px;color:#8a8880"><span style="width:6px;height:6px;border-radius:50%;background:#15803d;display:inline-block"></span>Approved</span>
+          <span style="display:flex;align-items:center;gap:3px;font-size:10px;color:#8a8880;margin-left:6px"><span style="width:6px;height:6px;border-radius:50%;background:#b45309;display:inline-block"></span>Review</span>
+        </div>
+      </div>
+      <div class="btn bp" style="font-size:10.5px">Open workbench</div>
+    </div>
+    <div class="ct">
+      <!-- Income Statement accordion (expanded) -->
+      <div class="ts">
+        <div class="thd">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:10px;color:#8a8880">▼</span>
+            <div style="font-size:11.5px;font-weight:500;color:#1a1917">Consolidated Statement of Profit and Loss</div>
+            <span class="badge b-cons" style="font-size:9px;padding:1px 5px">Con.</span>
+          </div>
+          <span class="badge b-green">All approved</span>
+        </div>
+        <div class="tbdy">
+          <!-- Column headers row -->
+          <div style="display:flex;align-items:center;padding:4px 9px;background:#f9f8f5;border-bottom:1px solid #e4e2dc">
+            <div style="width:80px;font-size:8.5px;color:#8a8880">Section</div>
+            <div style="flex:1;font-size:8.5px;color:#8a8880">Canonical field</div>
+            <div style="width:115px;font-size:8.5px;color:#8a8880">Source label</div>
+            <div style="width:70px;text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:3px"><span class="badge b-actual" style="font-size:8px">FY24</span></div>
+            <div style="width:65px;text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:3px"><span class="badge b-actual" style="font-size:8px">FY23</span></div>
+            <div style="width:10px"></div>
+          </div>
+          <div class="trow"><div style="width:80px;font-size:9.5px;color:#8a8880">revenue</div><div style="flex:1">interest_income</div><div style="width:115px;font-size:9.5px;color:#8a8880">Interest income</div><div style="width:70px;text-align:right;font-family:monospace;font-size:10.5px">1,27,841</div><div style="width:65px;text-align:right;font-family:monospace;font-size:9.5px;color:#8a8880">1,09,334</div><div style="width:8px;height:8px;border-radius:50%;background:#15803d;flex-shrink:0"></div></div>
+          <div class="trow"><div style="width:80px;font-size:9.5px;color:#8a8880">revenue</div><div style="flex:1">fee_income</div><div style="width:115px;font-size:9.5px;color:#8a8880">Fee and commission income</div><div style="width:70px;text-align:right;font-family:monospace;font-size:10.5px">7,376</div><div style="width:65px;text-align:right;font-family:monospace;font-size:9.5px;color:#8a8880">5,588</div><div style="width:8px;height:8px;border-radius:50%;background:#15803d;flex-shrink:0"></div></div>
+          <div class="trow sub" style="border-top:1px solid #ccc9bf"><div style="width:80px;font-size:9.5px;color:#8a8880">total</div><div style="flex:1;font-weight:500;color:#1a1917">total_income</div><div style="width:115px;font-size:9.5px;color:#8a8880">Total income</div><div style="width:70px;text-align:right;font-family:monospace;font-size:10.5px;font-weight:500">1,35,217</div><div style="width:65px;text-align:right;font-family:monospace;font-size:9.5px;color:#8a8880">1,14,922</div><div style="width:8px;height:8px;border-radius:50%;background:#15803d;flex-shrink:0"></div></div>
+          <div class="trow note-ref"><div style="width:80px;font-size:9.5px;color:#8a8880">expense</div><div style="flex:1;display:flex;align-items:center;gap:4px">impairment_loss_loans<span class="note-link">Note 21 →</span></div><div style="width:115px;font-size:9.5px;color:#8a8880">Impairment on fin. instruments</div><div style="width:70px;text-align:right;font-family:monospace;font-size:10.5px;color:#991b1b">(18,344)</div><div style="width:65px;text-align:right;font-family:monospace;font-size:9.5px;color:#8a8880">(14,228)</div><div style="width:8px;height:8px;border-radius:50%;background:#15803d;flex-shrink:0"></div></div>
+          <div class="trow sub" style="border-top:1px solid #ccc9bf"><div style="width:80px;font-size:9.5px;color:#8a8880">net</div><div style="flex:1;font-weight:500;color:#1a1917">net_income</div><div style="width:115px;font-size:9.5px;color:#8a8880">Profit for the year</div><div style="width:70px;text-align:right;font-family:monospace;font-size:10.5px;font-weight:500">27,592</div><div style="width:65px;text-align:right;font-family:monospace;font-size:9.5px;color:#8a8880">23,841</div><div style="width:8px;height:8px;border-radius:50%;background:#15803d;flex-shrink:0"></div></div>
+        </div>
+      </div>
+      <!-- Balance Sheet collapsed -->
+      <div class="ts"><div class="thd"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:10px;color:#8a8880">▶</span><div style="font-size:11.5px;font-weight:500;color:#1a1917">Consolidated Statement of Financial Position</div><span class="badge b-cons" style="font-size:9px;padding:1px 5px">Con.</span></div><span class="badge b-red">V01 failed</span></div></div>
+      <!-- Cash Flow collapsed -->
+      <div class="ts"><div class="thd"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:10px;color:#8a8880">▶</span><div style="font-size:11.5px;font-weight:500;color:#1a1917">Consolidated Statement of Cash Flows</div><span class="badge b-cons" style="font-size:9px;padding:1px 5px">Con.</span></div><span class="badge b-red">V05 failed</span></div></div>
+      <!-- Equity collapsed -->
+      <div class="ts"><div class="thd"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:10px;color:#8a8880">▶</span><div style="font-size:11.5px;font-weight:500;color:#1a1917">Statement of Changes in Equity</div><span class="badge b-cons" style="font-size:9px;padding:1px 5px">Con.</span></div><span class="badge b-green">All approved</span></div></div>
+      <!-- Notes Index accordion (NEW) -->
+      <div class="ts">
+        <div class="thd" style="background:#ede9fe">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:10px;color:#8a8880">▼</span>
+            <div style="font-size:11.5px;font-weight:500;color:#1a1917">Notes Index</div>
+            <span class="badge b-purple">8 notes extracted</span>
+          </div>
+          <span style="font-size:10px;color:#4c1d95">Referenced-only extraction</span>
+        </div>
+        <div class="tbdy">
+          <div style="display:flex;padding:4px 9px;background:#f9f8f5;border-bottom:1px solid #e4e2dc;font-size:8.5px;color:#8a8880;font-weight:600">
+            <div style="width:60px">Note #</div><div style="flex:1">Title</div><div style="width:90px;text-align:center">Referenced by</div><div style="width:55px;text-align:center">Pages</div><div style="width:70px"></div>
+          </div>
+          <div class="trow"><div style="width:60px;font-family:monospace;font-size:10.5px">Note 3</div><div style="flex:1;font-size:10.5px">Significant Accounting Policies</div><div style="width:90px;text-align:center;font-size:10px;color:#8a8880">4 rows</div><div style="width:55px;text-align:center;font-size:10px;color:#8a8880">pp. 12–18</div><div style="width:70px"><span class="al">View note</span></div></div>
+          <div class="trow"><div style="width:60px;font-family:monospace;font-size:10.5px">Note 7</div><div style="flex:1;font-size:10.5px">Loans and Advances</div><div style="width:90px;text-align:center;font-size:10px;color:#8a8880">6 rows</div><div style="width:55px;text-align:center;font-size:10px;color:#8a8880">pp. 24–27</div><div style="width:70px"><span class="al">View note</span></div></div>
+          <div class="trow"><div style="width:60px;font-family:monospace;font-size:10.5px">Note 9</div><div style="flex:1;font-size:10.5px">Borrowings</div><div style="width:90px;text-align:center;font-size:10px;color:#8a8880">3 rows</div><div style="width:55px;text-align:center;font-size:10px;color:#8a8880">pp. 31–33</div><div style="width:70px"><span class="al">View note</span></div></div>
+          <div class="trow"><div style="width:60px;font-family:monospace;font-size:10.5px">Note 14</div><div style="flex:1;font-size:10.5px">Statutory Reserves (RBI)</div><div style="width:90px;text-align:center;font-size:10px;color:#8a8880">2 rows</div><div style="width:55px;text-align:center;font-size:10px;color:#8a8880">pp. 41–42</div><div style="width:70px"><span class="al">View note</span></div></div>
+          <div class="trow"><div style="width:60px;font-family:monospace;font-size:10.5px">Note 21</div><div style="flex:1;font-size:10.5px">Impairment of Financial Assets</div><div style="width:90px;text-align:center;font-size:10px;color:#8a8880">3 rows</div><div style="width:55px;text-align:center;font-size:10px;color:#8a8880">pp. 51–54</div><div style="width:70px"><span class="al">View note</span></div></div>
+          <div style="padding:7px 9px;font-size:10px;color:#8a8880;background:#f9f8f5">3 further notes extracted. Only notes referenced by at least one financial row are shown.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<!-- ═══════════════ SCREEN 5: VALIDATION ═══════════════ -->
+<div class="blk" id="s5">
+<div class="blk-lbl">
+  <span class="blk-n">5 — Validation Dashboard</span>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span class="blk-new">OCR warning on failures</span><span class="blk-new">Actual columns only</span>
+    <span class="blk-r">/validation/[id] · HDFC Credila 2023 · T3 Ind AS NBFC · Consolidated · 8/11</span>
+  </div>
+</div>
+<div class="frame">
+  <div class="sb">
+    <div class="sb-logo"><div class="sb-m">Financial SpreadX</div><div class="sb-sub">Statement Normalisation</div><div class="sb-demo">Demo v1.1</div></div>
+    <div class="sb-nav">
+      <div class="sg">Ingestion</div><div class="si"><div class="si-dot" style="background:#60a5fa"></div>Upload</div>
+      <div class="sg">Review</div>
+      <div class="si"><div class="si-dot" style="background:#34d399"></div>Documents<span class="si-ct">19</span></div>
+      <div class="si"><div class="si-dot" style="background:#f59e0b"></div>Workbench<span class="si-ct">4</span></div>
+      <div class="si"><div class="si-dot" style="background:#5eead4"></div>Statement Tree</div>
+      <div class="si cur"><div class="si-dot" style="background:#f87171"></div>Validation<span class="si-ct">2</span></div>
+      <div class="sg">Output</div><div class="si"><div class="si-dot" style="background:#86efac"></div>Export Centre</div>
+    </div>
+    <div class="sb-foot"><div class="sb-row"><div class="av">AS</div><div><div style="font-size:10px;color:rgba(255,255,255,.65)">Anand S.</div></div></div></div>
+  </div>
+  <div class="mn">
+    <div class="tb">
+      <div><span class="pg-t">Validation Dashboard</span><span class="pg-s">· HDFC Credila 2023 · Consolidated · 8 / 11</span></div>
+      <div class="tb-r">
+        <span style="display:flex;align-items:center;gap:3px;font-size:10px;color:#8a8880"><span class="badge b-actual" style="font-size:8.5px">FY24 actual</span></span>
+        <span style="font-size:10px;color:#8a8880;margin-left:4px">Budget / forecast columns skipped</span>
+        <div class="btn bg" style="margin-left:8px">View failing rows</div>
+        <div class="btn bp">Fix &amp; re-validate</div>
+      </div>
+    </div>
+    <div class="ct">
+      <div class="hg">
+        <div><div style="font-size:24px;font-weight:600;color:#991b1b">8 / 11</div><div style="font-size:10px;color:#8a8880">checks passing</div></div>
+        <div style="flex:1;height:7px;background:#e4e2dc;border-radius:4px;overflow:hidden;max-width:180px"><div style="height:100%;width:72%;background:#b91c1c;border-radius:4px"></div></div>
+        <div style="font-size:11px;color:#8a8880">3 failures · HDFC Credila 2023 · INR Lakhs · Consolidated · Actual columns only</div>
+      </div>
+      <div class="vg">
+        <div class="vc pass"><div class="vc-id">V02</div><div class="vc-n">Profit before tax</div><div class="vc-f">total_income – expenses = pbt</div><div class="vc-r" style="color:#15803d">✓ 1,35,217 – 98,196 = 37,021</div></div>
+        <div class="vc fail">
+          <div class="vc-id">V01</div><div class="vc-n">Balance sheet identity</div><div class="vc-f">total_assets = liabilities + equity</div>
+          <div class="vc-r" style="color:#b91c1c">✗ Unit scale mismatch</div>
+          <div class="ocr-warn">No OCR rows involved — review extraction</div>
+        </div>
+        <div class="vc pass"><div class="vc-id">V03</div><div class="vc-n">Net income reconciliation</div><div class="vc-f">pbt – tax = net_income</div><div class="vc-r" style="color:#15803d">✓ 37,020 – 9,428 = 27,592</div></div>
+        <div class="vc pass"><div class="vc-id">V04</div><div class="vc-n">Comprehensive income</div><div class="vc-f">net + OCI = total_ci</div><div class="vc-r" style="color:#15803d">✓ 27,592 + 7 = 27,599</div></div>
+        <div class="vc fail">
+          <div class="vc-id">V05</div><div class="vc-n">Cash flow reconciliation</div><div class="vc-f">start + ops + inv + fin = end</div>
+          <div class="vc-r" style="color:#b91c1c">✗ Diff: –991 lakhs</div>
+          <div class="ocr-warn">⚠ Contains OCR-extracted values — verify source manually</div>
+        </div>
+        <div class="vc pass"><div class="vc-id">V06</div><div class="vc-n">Revenue rollup</div><div class="vc-f">components = total_income</div><div class="vc-r" style="color:#15803d">✓ 1,35,216 reconciles</div></div>
+        <div class="vc pass"><div class="vc-id">V07</div><div class="vc-n">Expense rollup</div><div class="vc-f">components = total_expenses</div><div class="vc-r" style="color:#15803d">✓ All 5 reconcile</div></div>
+        <div class="vc pass"><div class="vc-id">V08</div><div class="vc-n">Asset subtotals</div><div class="vc-f">fin + non_fin = total_assets</div><div class="vc-r" style="color:#15803d">✓ 16,36,973 + 7,631</div></div>
+        <div class="vc fail">
+          <div class="vc-id">V09</div><div class="vc-n">Equity roll-forward</div><div class="vc-f">open + ci + other = close</div>
+          <div class="vc-r" style="color:#b91c1c">✗ Securities premium gap</div>
+          <div class="ocr-warn">⚠ Contains OCR-extracted values — verify source manually</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<!-- ═══════════════ SCREEN 6: EXPORT CENTRE ═══════════════ -->
+<div class="blk" id="s6">
+<div class="blk-lbl">
+  <span class="blk-n">6 — Export Centre</span>
+  <span class="blk-r">/export/[id] · Aspect Capital Limited 2023 · T5 UK Co. Act · GBP Thousands · XLSX + JSON active</span>
+</div>
+<div class="frame">
+  <div class="sb">
+    <div class="sb-logo"><div class="sb-m">Financial SpreadX</div><div class="sb-sub">Statement Normalisation</div><div class="sb-demo">Demo v1.1</div></div>
+    <div class="sb-nav">
+      <div class="sg">Ingestion</div><div class="si"><div class="si-dot" style="background:#60a5fa"></div>Upload</div>
+      <div class="sg">Review</div>
+      <div class="si"><div class="si-dot" style="background:#34d399"></div>Documents<span class="si-ct">19</span></div>
+      <div class="si"><div class="si-dot" style="background:#f59e0b"></div>Workbench<span class="si-ct">4</span></div>
+      <div class="si"><div class="si-dot" style="background:#5eead4"></div>Statement Tree</div>
+      <div class="si"><div class="si-dot" style="background:#f87171"></div>Validation<span class="si-ct">2</span></div>
+      <div class="sg">Output</div><div class="si cur"><div class="si-dot" style="background:#86efac"></div>Export Centre</div>
+    </div>
+    <div class="sb-foot"><div class="sb-row"><div class="av">AS</div><div><div style="font-size:10px;color:rgba(255,255,255,.65)">Anand S.</div></div></div></div>
+  </div>
+  <div class="mn">
+    <div class="tb">
+      <div><span class="pg-t">Export Centre</span><span class="pg-s">· Aspect Capital 2023 · GBP thousands</span></div>
+      <div style="font-size:10px;color:#8a8880">Signed URLs expire in 7 days</div>
+    </div>
+    <div class="ct">
+      <div style="margin-bottom:11px">
+        <div style="font-size:10.5px;font-weight:500;color:#8a8880;margin-bottom:5px">Output tier</div>
+        <div class="tier-sel"><div class="tb2">Raw extraction</div><div class="tb2">Canonical mapped</div><div class="tb2 act">Reviewed final</div></div>
+      </div>
+      <div class="ex-grid">
+        <div class="ex-card rec">
+          <div class="ex-hd"><div class="ex-ico" style="background:#dcfce7;color:#166534">XLS</div><div><div class="rec-pill">Primary demo output</div><div style="font-size:11.5px;font-weight:500;color:#1a1917">XLSX Workbook</div><div style="font-size:9px;color:#8a8880">8 sheets · Styled · exceljs</div></div></div>
+          <div class="ex-body">
+            <div class="ex-desc">Multi-sheet workbook. Frozen rows, auto-filter, amber highlight &lt;80% confidence, subtotals bolded, V01–V12 tab, scope columns, OCR rows flagged.</div>
+            <div class="ex-tabs"><span class="ex-tab hi">Summary</span><span class="ex-tab">Income Stmt</span><span class="ex-tab">Balance Sheet</span><span class="ex-tab">Cash Flow</span><span class="ex-tab">Equity</span><span class="ex-tab">Validation</span><span class="ex-tab">Raw Extract</span><span class="ex-tab">Metadata</span></div>
+            <div class="ex-meta" style="margin-top:8px"><span style="font-size:11px;font-weight:500;color:#1a1917">~87 KB · FX: 1.2653 GBP/USD</span><span style="font-size:10px;color:#8a8880">Expires 6 Apr 2025</span></div>
+            <div class="ex-row"><span style="font-size:9.5px;color:#8a8880">30 Mar 2025 14:22</span><div style="display:flex;gap:5px"><div class="btn bg" style="font-size:10px;padding:3px 7px">↻ Regen</div><div class="btn bp" style="font-size:10px;padding:3px 7px">↓ Download XLSX</div></div></div>
+          </div>
+        </div>
+        <div class="ex-card">
+          <div class="ex-hd"><div class="ex-ico" style="background:#dcfce7;color:#166534">{}</div><div><div class="rec-pill">Recommended</div><div style="font-size:11.5px;font-weight:500;color:#1a1917">Reviewed final JSON</div><div style="font-size:9px;color:#8a8880">Post-override · API-ready</div></div></div>
+          <div class="ex-body">
+            <div class="ex-desc">Final authoritative output. Includes statement_scope, column_metadata (actual/restated), note_references per row, and ocr_method flags.</div>
+            <div class="col-pills"><span class="cp">document_id</span><span class="cp">company_name</span><span class="cp">statement_scopes[]</span><span class="cp">statements{}</span><span class="cp">validation{}</span><span class="cp">fx_rates{}</span><span class="cp">ocr_pages[]</span></div>
+            <div class="ex-meta"><span style="font-size:11px;font-weight:500;color:#1a1917">~74 KB</span><span style="font-size:10px;color:#8a8880">Expires 6 Apr 2025</span></div>
+            <div class="ex-row"><span style="font-size:9.5px;color:#8a8880">30 Mar 2025 14:25</span><div style="display:flex;gap:5px"><div class="btn bg" style="font-size:10px;padding:3px 7px">↻ Regen</div><div class="btn bp" style="font-size:10px;padding:3px 7px">↓ Download JSON</div></div></div>
+          </div>
+        </div>
+        <div class="ex-card def">
+          <div class="ex-hd"><div class="ex-ico" style="background:#fef3c7;color:#92400e">CSV</div><div><div style="font-size:11.5px;font-weight:500;color:#1a1917">CSV — Flat long format</div><div style="font-size:9px;color:#8a8880">19 cols · deferred to production</div></div></div>
+          <div class="ex-body">
+            <div class="ex-desc">One row per line item per year. 19 columns incl. value_usd_thousands, statement_scope, ocr_method.</div>
+            <div class="def-note">Deferred · Add papaparse CSV export (Section 11 task 7.1 · ~1 day)</div>
+          </div>
+        </div>
+        <div class="ex-card def">
+          <div class="ex-hd"><div class="ex-ico" style="background:#ede9fe;color:#4c1d95">PDF</div><div><div style="font-size:11.5px;font-weight:500;color:#1a1917">PDF Review Summary</div><div style="font-size:9px;color:#8a8880">Sign-off pack · deferred to production</div></div></div>
+          <div class="ex-body">
+            <div class="ex-desc">Cover page, flagged rows table, V01–V12 scorecard, analyst override log, OCR page list.</div>
+            <div class="def-note">Deferred · Add @react-pdf/renderer (Section 11 task 7.1 · ~2 days)</div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="padding:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div><div style="font-size:11.5px;font-weight:500;color:#1a1917">Export all 14 approved documents</div><div style="font-size:10px;color:#8a8880;margin-top:2px">Individual XLSX + JSON per document</div></div>
+          <div style="display:flex;gap:6px"><div class="btn bp" style="font-size:10.5px">↓ All XLSX</div><div class="btn bp" style="font-size:10.5px">↓ All JSON</div></div>
+        </div>
+        <div style="font-size:10px;color:#8a8880">FX: GBP 1.2653 · INR 0.0120 · RMB 0.1406 · NTD 0.0318 · HKD 0.1279 (period-end dates)</div>
+        <div class="def-note" style="margin-top:8px">Bulk CSV + Batch Import screen deferred to production</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div style="text-align:center;font-size:11px;color:#8a8880;padding:14px 0;border-top:1px solid #e4e2dc;margin-top:6px">
+  Financial SpreadX · Demo Mockup v1.1 · 7 screens · All 19 documents · Pass to Claude Code with docs/demo-design.html
+</div>
+</body>
+</html>

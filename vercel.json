@@ -1,0 +1,5 @@
+{
+  "functions": {
+    "app/api/documents/route.ts": { "maxDuration": 300 }
+  }
+}

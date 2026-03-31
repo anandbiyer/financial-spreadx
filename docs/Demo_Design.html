@@ -1,0 +1,2764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Financial SpreadX — Demo Design Specification v1.0</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@350;400;500;600&display=swap');
+
+  :root {
+    --ink: #1a1917;
+    --ink2: #4a4844;
+    --ink3: #8a8880;
+    --surface: #f9f8f5;
+    --card: #ffffff;
+    --border: #e4e2dc;
+    --border2: #ccc9bf;
+    --accent: #1d4ed8;
+    --accent-soft: #dbeafe;
+    --green: #166534;
+    --green-soft: #dcfce7;
+    --amber: #92400e;
+    --amber-soft: #fef3c7;
+    --red: #991b1b;
+    --red-soft: #fee2e2;
+    --teal: #134e4a;
+    --teal-soft: #ccfbf1;
+    --violet: #4c1d95;
+    --violet-soft: #ede9fe;
+    --code-bg: #f1f0eb;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 15px;
+    font-weight: 350;
+    line-height: 1.7;
+    color: var(--ink);
+    background: var(--surface);
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 2rem 6rem;
+  }
+
+  /* HEADER */
+  .doc-header {
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 2rem;
+    margin-bottom: 3rem;
+  }
+  .doc-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink3);
+    margin-bottom: .5rem;
+  }
+  .doc-title {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 3rem;
+    line-height: 1.1;
+    color: var(--ink);
+    margin-bottom: 1rem;
+  }
+  .doc-sub {
+    font-size: 18px;
+    font-weight: 350;
+    color: var(--ink2);
+    max-width: 600px;
+    line-height: 1.5;
+  }
+  .doc-meta {
+    display: flex;
+    gap: 2rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .doc-meta span {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--ink3);
+  }
+  .doc-meta strong { color: var(--ink2); }
+
+  /* SECTION */
+  .section {
+    margin-bottom: 3.5rem;
+  }
+  .section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--ink3);
+    margin-bottom: .5rem;
+  }
+  h2 {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 2rem;
+    line-height: 1.2;
+    color: var(--ink);
+    margin-bottom: 1.25rem;
+    padding-bottom: .75rem;
+    border-bottom: 1px solid var(--border);
+  }
+  h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 1.75rem 0 .75rem;
+  }
+  h4 {
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--ink2);
+    margin: 1.25rem 0 .5rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  p { margin-bottom: .85rem; color: var(--ink2); }
+  ul, ol { padding-left: 1.25rem; color: var(--ink2); margin-bottom: .85rem; }
+  li { margin-bottom: .3rem; }
+  strong { font-weight: 600; color: var(--ink); }
+
+  /* TEMPLATE CARDS */
+  .template-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+  .template-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem;
+    position: relative;
+  }
+  .template-card .t-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: .6rem;
+  }
+  .template-card h4 { margin: 0 0 .4rem; text-transform: none; letter-spacing: 0; font-size: .95rem; }
+  .template-card .t-desc { font-size: 13px; color: var(--ink3); margin-bottom: .6rem; line-height: 1.5; }
+  .template-card .t-examples { list-style: none; padding: 0; }
+  .template-card .t-examples li {
+    font-size: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--ink3);
+    padding: 2px 0;
+    border-bottom: 1px solid var(--border);
+    margin: 0;
+  }
+  .template-card .t-examples li:last-child { border: none; }
+  .template-card .t-signals {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: .6rem;
+  }
+  .t-signal {
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 20px;
+    background: var(--border);
+    color: var(--ink2);
+  }
+
+  /* COLOR VARIANTS */
+  .t1 { background: var(--accent-soft); color: var(--accent); }
+  .t2 { background: var(--violet-soft); color: var(--violet); }
+  .t3 { background: var(--green-soft); color: var(--green); }
+  .t4 { background: var(--amber-soft); color: var(--amber); }
+  .t5 { background: var(--teal-soft); color: var(--teal); }
+  .t6 { background: #fce7f3; color: #9d174d; }
+  .t7 { background: var(--red-soft); color: var(--red); }
+  .t8 { background: #f0fdf4; color: #14532d; }
+
+  /* ARCH BLOCKS */
+  .arch-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+  .arch-block {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem;
+  }
+  .arch-block h4 { margin-top: 0; font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); margin-bottom: .5rem; }
+  .arch-block .arch-title { font-size: 1rem; font-weight: 600; color: var(--ink); margin-bottom: .5rem; }
+  .arch-block ul { font-size: 13px; padding-left: 1rem; margin: 0; }
+  .arch-block li { margin-bottom: .2rem; color: var(--ink2); }
+
+  /* PIPELINE */
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    margin: 1.5rem 0;
+  }
+  .pipeline-step {
+    display: grid;
+    grid-template-columns: 2.5rem 1fr;
+    gap: 1rem;
+    align-items: start;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .85rem 1rem;
+  }
+  .step-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+    text-align: center;
+    padding-top: .05rem;
+  }
+  .step-content h4 { margin: 0 0 .25rem; text-transform: none; letter-spacing: 0; color: var(--ink); }
+  .step-content p { margin: 0; font-size: 13px; color: var(--ink3); }
+  .step-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: .5rem;
+    vertical-align: middle;
+  }
+  .tag-claude { background: var(--violet-soft); color: var(--violet); }
+  .tag-det { background: var(--green-soft); color: var(--green); }
+  .tag-async { background: var(--amber-soft); color: var(--amber); }
+
+  /* CODE BLOCKS */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+  code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--ink);
+    line-height: 1.6;
+  }
+  p code, li code {
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 12px;
+  }
+
+  /* SCHEMA TABLE */
+  .schema-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 1rem 0;
+  }
+  .schema-table th {
+    background: var(--code-bg);
+    padding: .5rem .75rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--ink);
+    border-bottom: 1px solid var(--border2);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+  .schema-table td {
+    padding: .45rem .75rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink2);
+    vertical-align: top;
+  }
+  .schema-table td code { font-size: 11.5px; }
+  .schema-table tr:last-child td { border-bottom: none; }
+  .f-pk { color: var(--accent); font-weight: 500; }
+  .f-fk { color: var(--teal); }
+
+  /* CALLOUT */
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-soft);
+    padding: .85rem 1.1rem;
+    border-radius: 0 8px 8px 0;
+    margin: 1.25rem 0;
+    font-size: 14px;
+    color: var(--ink);
+  }
+  .callout.amber {
+    border-color: #d97706;
+    background: var(--amber-soft);
+  }
+  .callout.green {
+    border-color: #16a34a;
+    background: var(--green-soft);
+  }
+
+  /* PHASE TABLE */
+  .phase-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+  .phase-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem;
+  }
+  .phase-card .phase-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink3);
+    margin-bottom: .3rem;
+  }
+  .phase-card h4 { margin: 0 0 .75rem; font-size: .9rem; text-transform: none; letter-spacing: 0; }
+  .phase-card ul { font-size: 13px; padding-left: 1rem; margin: 0; }
+
+  /* DIVIDER */
+  hr { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+
+  /* SCREEN SPEC */
+  .screens {
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+    margin: 1rem 0;
+  }
+  .screen-row {
+    display: grid;
+    grid-template-columns: 6rem 1fr;
+    gap: 1rem;
+    align-items: start;
+    padding: .85rem 1rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .screen-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--accent);
+    padding-top: .1rem;
+  }
+  .screen-desc { font-size: 13px; color: var(--ink2); }
+  .screen-desc strong { font-weight: 600; color: var(--ink); }
+
+  /* STACK TABLE */
+  .stack-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+    margin: 1rem 0;
+  }
+  .stack-col h4 { font-size: .8rem; text-transform: uppercase; letter-spacing: .07em; color: var(--ink3); margin-bottom: .5rem; margin-top: 0; }
+  .stack-col ul { list-style: none; padding: 0; margin: 0; }
+  .stack-col li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: .3rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    margin: 0;
+  }
+  .stack-col li:last-child { border: none; }
+  .stack-col li span { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink3); }
+
+  /* TOC */
+  .toc {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 3rem;
+  }
+  .toc h3 { margin-top: 0; font-size: .85rem; text-transform: uppercase; letter-spacing: .07em; color: var(--ink3); }
+  .toc ol { font-size: 14px; color: var(--ink2); padding-left: 1.25rem; margin: 0; }
+  .toc li { margin-bottom: .3rem; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  @media (max-width: 640px) {
+    .arch-grid, .phase-grid, .stack-grid { grid-template-columns: 1fr; }
+    .doc-title { font-size: 2rem; }
+  }
+
+  /* EXPORT SECTION */
+  .export-format-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin: 1.5rem 0;
+  }
+  .export-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .export-card-header {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .export-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content:center;
+    font-size: 16px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .export-card-body { padding: 1rem 1.25rem; }
+  .export-card-body h4 { margin: 0 0 .4rem; font-size: .85rem; text-transform: none; letter-spacing: 0; }
+  .export-card-body p { font-size: 13px; color: var(--ink3); margin-bottom: .75rem; }
+  .export-card-body ul { font-size: 13px; padding-left: 1.1rem; margin: 0; color: var(--ink2); }
+  .export-card-body li { margin-bottom: .25rem; }
+
+  .csv-mock, .xlsx-mock {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+  .csv-mock table, .xlsx-mock table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+  }
+  .csv-mock th, .xlsx-mock th {
+    background: #e4e2dc;
+    padding: 5px 10px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--ink);
+    border-bottom: 1px solid var(--border2);
+    white-space: nowrap;
+    font-size: 10px;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .csv-mock td, .xlsx-mock td {
+    padding: 4px 10px;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink2);
+    white-space: nowrap;
+  }
+  .csv-mock tr:last-child td, .xlsx-mock tr:last-child td { border: none; }
+  .xlsx-tab-row {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border2);
+    background: var(--code-bg);
+    padding: 0 8px;
+    flex-wrap: wrap;
+  }
+  .xlsx-tab {
+    padding: 5px 14px;
+    font-size: 11px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--ink3);
+    cursor: pointer;
+    border-top: 2px solid transparent;
+    margin-top: 2px;
+  }
+  .xlsx-tab.active {
+    color: var(--accent);
+    border-top-color: var(--accent);
+    background: #fff;
+    font-weight: 500;
+  }
+  .field-map-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin: .75rem 0;
+  }
+  .field-map-table th {
+    background: var(--code-bg);
+    padding: .4rem .75rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--ink);
+    border-bottom: 1px solid var(--border2);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+  .field-map-table td {
+    padding: .35rem .75rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink2);
+    vertical-align: top;
+    font-size: 12px;
+  }
+  .field-map-table tr:last-child td { border: none; }
+  .field-map-table td code { font-size: 11px; }
+  .fmt-badge {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .fmt-num { background: #dbeafe; color: #1e40af; }
+  .fmt-str { background: #dcfce7; color: #166534; }
+  .fmt-date { background: #fef3c7; color: #92400e; }
+  .fmt-bool { background: #ede9fe; color: #4c1d95; }
+  .export-flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 1.25rem 0;
+    flex-wrap: wrap;
+  }
+  .ef-step {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .65rem 1rem;
+    font-size: 12px;
+    color: var(--ink2);
+    white-space: nowrap;
+  }
+  .ef-step strong { display: block; font-size: 11px; color: var(--ink); margin-bottom: 1px; }
+  .ef-arrow {
+    padding: 0 8px;
+    color: var(--ink3);
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+
+<div class="doc-header">
+  <div class="doc-label">Demo Design Specification &middot; Version 1.1 &middot; For Claude Code</div>
+  <h1 class="doc-title">Financial SpreadX</h1>
+  <p class="doc-sub">Demo build — processing 19 specific uploaded documents to demonstrate core normalisation capability. This document is the <strong>only reference Claude Code needs</strong>. Do not reference the full production design document.</p>
+  <div class="doc-meta">
+    <span><strong>Scope</strong> 19 documents &middot; 8 template families</span>
+    <span><strong>Pipeline</strong> Synchronous (no job queue)</span>
+    <span><strong>Auth</strong> Single API key (no Clerk)</span>
+    <span><strong>Exports</strong> XLSX + JSON only</span>
+    <span><strong>Screens</strong> 6 (no Batch Import)</span>
+    <span><strong>Timeline</strong> 3&ndash;4 weeks</span>
+  </div>
+</div>
+
+<div class="toc">
+  <h3>Contents</h3>
+  <ol>
+    <li><a href="#scope">Section 01 &mdash; Demo Scope, Constraints &amp; Environment Variables</a></li>
+    <li><a href="#templates">Section 02 &mdash; Document Template Taxonomy (19 documents, 8 families)</a></li>
+    <li><a href="#requirements">Section 03 &mdash; Additional Requirements &amp; Technical Solutions (Req A&ndash;E)</a></li>
+    <li><a href="#pipeline">Section 04 &mdash; Synchronous Processing Pipeline (10 stages)</a></li>
+    <li><a href="#mapping">Section 05 &mdash; Mapping Engine (9 modules, 8 template rules)</a></li>
+    <li><a href="#schema">Section 06 &mdash; Data Model (8 tables)</a></li>
+    <li><a href="#arch">Section 07 &mdash; Application Architecture &amp; Project Structure</a></li>
+    <li><a href="#screens">Section 08 &mdash; Frontend Screen Specifications (6 screens)</a></li>
+    <li><a href="#layout">Section 09 &mdash; Screen Layout &amp; Design Tokens</a></li>
+    <li><a href="#stack">Section 10 &mdash; Technology Stack</a></li>
+    <li><a href="#exports">Section 11 &mdash; Export Specifications (XLSX + JSON)</a></li>
+    <li><a href="#todo">Section 12 &mdash; Development Todo List (66 tasks)</a></li>
+    <li><a href="#kickoff">Section 13 &mdash; Claude Code Session Prompts</a></li>
+  </ol>
+</div>
+
+<div class="section" id="scope">
+  <div class="section-label">Section 01</div>
+  <h2>Demo Scope &amp; Constraints</h2>
+
+  <div class="callout green">
+    <strong>Mapping engine is NOT simplified.</strong> All 6 modules and all 8 template rule files must be implemented at full fidelity. This is the core value being demonstrated to the client.
+  </div>
+
+  <h3>What IS built in the demo</h3>
+  <ul style="font-size:14px;color:var(--ink2);padding-left:1.5rem;line-height:2.1">
+    <li>Next.js 14 web app on Vercel (or local)</li>
+    <li>All 19 PDFs pre-loaded via seed script before demo</li>
+    <li>Per-page PDF classification (digital / scanned / hybrid)</li>
+    <li>OCR for scanned pages via Claude Vision &mdash; rasterise to PNG, extract structured rows directly from image</li>
+    <li>Financial page filtering &mdash; isolates statement pages from 200&ndash;400 page reports</li>
+    <li>Template classification across 8 families (T1&ndash;T8) using Claude</li>
+    <li>Standalone vs consolidated statement detection</li>
+    <li>Multi-year column extraction with actual / restated / forecast classification</li>
+    <li>Note entity extraction and bidirectional linking (Notes to Accounts)</li>
+    <li>Full 6-module mapping engine with all 8 template rule files</li>
+    <li>V01&ndash;V12 accounting validation checks</li>
+    <li>6-screen UI: Document Library, Upload &amp; Classify, Review Workbench, Statement Tree, Validation Dashboard, Export Centre</li>
+    <li>XLSX workbook (8 sheets, styled) and reviewed JSON exports</li>
+    <li>Single API key auth &mdash; no sign-up flow</li>
+  </ul>
+
+  <h3>What is NOT built in the demo</h3>
+  <ul style="font-size:14px;color:var(--ink2);padding-left:1.5rem;line-height:2.1">
+    <li><s>Clerk authentication</s> &mdash; replaced by hardcoded <code>DEMO_API_KEY</code></li>
+    <li><s>Upstash QStash job queue</s> &mdash; replaced by synchronous in-request pipeline</li>
+    <li><s>Upstash Redis</s> &mdash; no concurrency semaphore needed</li>
+    <li><s>Batch Import screen</s> &mdash; replaced by one-time seed script</li>
+    <li><s>CSV export</s> (papaparse) &mdash; deferred to production</li>
+    <li><s>PDF review summary export</s> (@react-pdf) &mdash; deferred to production</li>
+    <li><s>Learning loop</s> &mdash; corrections save to DB but do not auto-update mapping_rules</li>
+    <li><s>OCR</s> &mdash; all 19 documents are text-based PDFs, no OCR needed</li>
+    <li><s>Sentry error monitoring</s> &mdash; use console.error for demo</li>
+  </ul>
+
+  <h3>Environment Variables (.env.local)</h3>
+  <pre><code># 6 variables only &mdash; no Clerk, no QStash, no Redis
+ANTHROPIC_API_KEY=sk-ant-...
+BLOB_READ_WRITE_TOKEN=...
+DATABASE_URL=postgresql://...
+DATABASE_URL_UNPOOLED=postgresql://...
+DEMO_API_KEY=demo-spreadx-2025
+NEXT_PUBLIC_APP_URL=http://localhost:3000</code></pre>
+
+  <h3>API Key Middleware</h3>
+  <pre><code>// middleware.ts
+import { NextRequest, NextResponse } from 'next/server';
+export function middleware(req: NextRequest) {
+  if (req.nextUrl.pathname.startsWith('/api/') ||
+      req.nextUrl.pathname.startsWith('/(dashboard)/')) {
+    const key = req.headers.get('x-api-key') ??
+                req.cookies.get('demo-api-key')?.value;
+    if (key !== process.env.DEMO_API_KEY) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+  }
+  return NextResponse.next();
+}
+export const config = {
+  matcher: ['/api/:path*', '/(dashboard)/:path*'],
+};</code></pre>
+
+  <h3>Seed Script — Loading All 19 Documents</h3>
+  <p>Run once before the demo. Processes all PDFs sequentially and populates the database.</p>
+  <pre><code>// scripts/seed-demo-docs.ts  —  Run: npx tsx scripts/seed-demo-docs.ts
+const DEMO_DOCS = [
+  { path: './demo-docs/Aspect_Capital_Limited_2023.pdf',       company: 'Aspect Capital Limited',       year: 2023 },
+  { path: './demo-docs/Aditya_Birla_Finance_Limited_2024.pdf', company: 'Aditya Birla Finance',         year: 2024 },
+  { path: './demo-docs/Cash_America_International_2007.pdf',   company: 'Cash America International',   year: 2007 },
+  { path: './demo-docs/freddie2023.pdf',                       company: 'Freddie Mac',                  year: 2023 },
+  { path: './demo-docs/Fubon_Securities_Co_Ltd_2017.pdf',      company: 'Fubon Securities',             year: 2017 },
+  { path: './demo-docs/hdfc_credila_2023.pdf',                 company: 'HDFC Credila Financial',       year: 2023 },
+  { path: './demo-docs/Infigen_Energy_Eifel_2008.pdf',         company: 'Babcock & Brown Eifel UK',     year: 2008 },
+  { path: './demo-docs/jademerchantllp2021.pdf',               company: 'Jade Merchant Bank LLP',       year: 2021 },
+  { path: './demo-docs/Jane_street_Group_LLC_2024.pdf',        company: 'Jane Street Group LLC',        year: 2024 },
+  { path: './demo-docs/LaBranche___Co_Inc_2008.pdf',           company: 'LaBranche & Co Inc',           year: 2008 },
+  { path: './demo-docs/LT_Finance_Limited_2019.pdf',           company: 'L&T Finance Limited',          year: 2019 },
+  { path: './demo-docs/Orient_Securities_2024.pdf',            company: 'Orient Securities (DFZQ)',     year: 2024 },
+  { path: './demo-docs/paratus_amc_limited2024.pdf',           company: 'Paratus AMC / Foundation',     year: 2024 },
+  { path: './demo-docs/rathbone2024.pdf',                      company: 'Rathbone Group',               year: 2024 },
+  { path: './demo-docs/sourhernpacificmortgagelimited2021.pdf',company: 'Southern Pacific Mortgage',    year: 2021 },
+  { path: './demo-docs/Sterling_Biotech_Limited_2008.pdf',     company: 'Sterling Biotech Limited',     year: 2008 },
+  { path: './demo-docs/Sun_Hung_Kai___Co__Limited_AR_2024.pdf',company: 'Sun Hung Kai & Co',           year: 2024 },
+  { path: './demo-docs/TFG_Asset_management_UK_LLP_2024.pdf',  company: 'TFG Asset Management LLP',    year: 2024 },
+  { path: './demo-docs/TPG_Inc_2022.pdf',                      company: 'TPG Group Holdings LP',        year: 2022 },
+];
+for (const doc of DEMO_DOCS) {
+  console.log(`Processing: ${doc.company}...`);
+  await processDocumentSynchronously(doc);
+  console.log(`  done`);
+}
+console.log('All 19 documents seeded.');</code></pre>
+</div>
+
+<!-- TEMPLATE TAXONOMY -->
+<!-- SECTION 1: TEMPLATE TAXONOMY -->
+<div class="section" id="templates">
+  <div class="section-label">Section 02</div>
+  <h2>Document Template Taxonomy</h2>
+  <p>Analysis of the 19 uploaded annual reports and financial statements reveals <strong>8 distinct template families</strong>. Each drives different extraction logic, label vocabularies, and mapping rules.</p>
+
+  <div class="template-grid">
+
+    <div class="template-card">
+      <span class="t-badge t1">T1</span>
+      <h4>US GAAP — Standard Corporate</h4>
+      <p class="t-desc">Full 4-statement set. EPS disclosures. Income from continuing vs discontinued operations. Millions or thousands USD.</p>
+      <ul class="t-examples">
+        <li>Cash America International (2007)</li>
+        <li>Freddie Mac (2024) — GSE scale</li>
+        <li>LaBranche &amp; Co (2008)</li>
+      </ul>
+      <div class="t-signals">
+        <span class="t-signal">EPS basic/diluted</span>
+        <span class="t-signal">Weighted avg shares</span>
+        <span class="t-signal">Income from operations</span>
+      </div>
+    </div>
+
+    <div class="template-card">
+      <span class="t-badge t2">T2</span>
+      <h4>US GAAP — Alternative Investment / LP / LLC</h4>
+      <p class="t-desc">Partnership or LLC structure. Capital allocation-based income. Non-controlling interests in consolidated funds. Partners' capital statement instead of equity.</p>
+      <ul class="t-examples">
+        <li>TPG Group Holdings LP (2022)</li>
+        <li>Jane Street Group LLC (2024)</li>
+      </ul>
+      <div class="t-signals">
+        <span class="t-signal">Partners' capital</span>
+        <span class="t-signal">Capital allocation income</span>
+        <span class="t-signal">Fund consolidation</span>
+        <span class="t-signal">Carried interest</span>
+      </div>
+    </div>
+
+    <div class="template-card">
+      <span class="t-badge t3">T3</span>
+      <h4>Ind AS / NBFC (India)</h4>
+      <p class="t-desc">IFRS-aligned Indian Accounting Standards. RBI-regulated NBFC disclosures. Statutory reserves (45-IC). INR in lakhs or crores.</p>
+      <ul class="t-examples">
+        <li>HDFC Credila Financial (2023)</li>
+        <li>L&amp;T Finance Limited (2019)</li>
+        <li>Aditya Birla Finance (2024)</li>
+      </ul>
+      <div class="t-signals">
+        <span class="t-signal">Revenue from operations</span>
+        <span class="t-signal">Debenture redemption reserve</span>
+        <span class="t-signal">Reserve u/s 45-IC RBI</span>
+        <span class="t-signal">INR crore/lakh</span>
+      </div>
+    </div>
+
+    <div class="template-card">
+      <span class="t-badge t4">T4</span>
+      <h4>Old Indian GAAP (Pre-Ind AS)</h4>
+      <p class="t-desc">Schedule-format balance sheet with Sources/Application of Funds structure. Separate deferred tax liability line. EPS disclosure. INR in lakhs.</p>
+      <ul class="t-examples">
+        <li>Sterling Biotech Limited (2008)</li>
+      </ul>
+      <div class="t-signals">
+        <span class="t-signal">Sources of funds</span>
+        <span class="t-signal">Application of funds</span>
+        <span class="t-signal">Schedule references</span>
+        <span class="t-signal">Profit &amp; Loss A/c</span>
+      </div>
+    </div>
+
+    <div class="template-card">
+      <span class="t-badge t5">T5</span>
+      <h4>UK Companies Act (Asset Manager)</h4>
+      <p class="t-desc">UK GAAP. Turnover-based income statement. Administration expenses. Net (loss)/profit for financial year. GBP thousands. No separate OCI statement unless required.</p>
+      <ul class="t-examples">
+        <li>Aspect Capital Limited (2023)</li>
+        <li>Rathbone Group (2024)</li>
+        <li>Babcock &amp; Brown Eifel UK (2008)</li>
+      </ul>
+      <div class="t-signals">
+        <span class="t-signal">Turnover</span>
+        <span class="t-signal">Administration expenses</span>
+        <span class="t-signal">Operating (loss)/profit</span>
+        <span class="t-signal">Companies Act 2006</span>
+      </div>
+    </div>
+
+    <div class="template-card">
+      <span class="t-badge t6">T6</span>
+      <h4>UK LLP / Partnership</h4>
+      <p class="t-desc">LLP structure. Profit available for discretionary distribution to members. Members' capital instead of equity. No corporate tax (pass-through). USD or GBP thousands.</p>
+      <ul class="t-examples">
+        <li>Jade Merchant Bank LLP (2021)</li>
+        <li>TFG Asset Management UK LLP (2024)</li>
+      </ul>
+      <div class="t-signals">
+        <span class="t-signal">Members' remuneration</span>
+        <span class="t-signal">Profit for discretionary division</span>
+        <span class="t-signal">Members' capital</span>
+        <span class="t-signal">Average loss per member</span>
+      </div>
+    </div>
+
+    <div class="template-card">
+      <span class="t-badge t7">T7</span>
+      <h4>UK GAAP — Specialist Lender / Mortgage</h4>
+      <p class="t-desc">Mortgage-backed securities, securitization vehicles, interest income via effective interest method. Hedge accounting disclosures. Non-recourse loan notes.</p>
+      <ul class="t-examples">
+        <li>Paratus AMC / Foundation Home Loans (2024)</li>
+        <li>Southern Pacific Mortgage (2021)</li>
+      </ul>
+      <div class="t-signals">
+        <span class="t-signal">Effective interest method</span>
+        <span class="t-signal">Non-recourse notes</span>
+        <span class="t-signal">Securitisation vehicles</span>
+        <span class="t-signal">Portfolio hedges</span>
+      </div>
+    </div>
+
+    <div class="template-card">
+      <span class="t-badge t8">T8</span>
+      <h4>IFRS Asia — Securities / Broker-Dealer</h4>
+      <p class="t-desc">IFRS-compliant Asian securities firm. Commission and fee income dominant. Clearing settlement funds, margin accounts, brokerage client payables. RMB, NTD, HKD.</p>
+      <ul class="t-examples">
+        <li>Orient Securities / DFZQ (2024) — RMB</li>
+        <li>Fubon Securities (2017) — NTD</li>
+        <li>Sun Hung Kai &amp; Co (2024) — HKD</li>
+      </ul>
+      <div class="t-signals">
+        <span class="t-signal">Brokerage handling fees</span>
+        <span class="t-signal">Securities lending income</span>
+        <span class="t-signal">Clearing settlement funds</span>
+        <span class="t-signal">Customer margin accounts</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="callout">
+    <strong>Classifier signal library:</strong> The template classifier should be trained on a vocabulary of ~60 discriminating signals — label strings, structural patterns, currency codes, unit formats, and statement hierarchy markers. Each template family has a unique fingerprint of 5–8 strong signals (e.g., "Reserve u/s 45-IC" uniquely identifies T3; "Profit for discretionary division" uniquely identifies T6).
+  </div>
+</div>
+
+
+
+<!-- SECTION 2: PIPELINE -->
+
+<!-- SECTION 03: ADDITIONAL REQUIREMENTS -->
+<div class="section" id="requirements">
+  <div class="section-label">Section 03</div>
+  <h2>Additional Requirements &amp; Technical Solutions</h2>
+  <p>Four requirements were added after the initial design. Each one is fully designed here with its data model additions, new pipeline stages, new mapping modules, and implementation code. These requirements are integrated into the pipeline (Section 04), mapping engine (Section 05), and data model (Section 06) that follow.</p>
+
+  <h3>Requirement A &mdash; PDF Page Classification (Digital / Scanned / Hybrid)</h3>
+
+  <div class="callout">
+    <strong>Problem:</strong> A single annual report can mix native-digital pages (text extractable by pdf-parse) with scanned inserts such as auditor signatures, stamp pages, or legacy comparative statements. Page-level classification is needed to avoid sending image pages to the text extraction pipeline and to flag which pages need OCR.
+  </div>
+
+  <h4>Solution design</h4>
+  <p>Every page is classified before any AI call. Classification is fully deterministic &mdash; no Claude call needed. The rule set:</p>
+  <table class="schema-table">
+    <thead><tr><th>Classification</th><th>Word count</th><th>Additional signal</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><code>digital</code></td><td>&ge; 80 words</td><td>Normal ASCII ratio &ge; 90%</td><td>Pass to financial page filter</td></tr>
+      <tr><td><code>hybrid</code></td><td>20&ndash;79 words</td><td>Partial text layer present</td><td>Flag; pass text portion to filter; skip in demo</td></tr>
+      <tr><td><code>scanned</code></td><td>&lt; 20 words</td><td>Word count near zero or high garbage-char ratio</td><td>Flag as OCR-required; skip in demo (all 19 docs are digital)</td></tr>
+    </tbody>
+  </table>
+
+  <h4>New database table &mdash; document_pages</h4>
+  <pre><code>// Added to lib/db/schema.ts
+export const pageClassificationEnum = pgEnum('page_classification', [
+  'digital', 'scanned', 'hybrid'
+]);
+export const pageSectionEnum = pgEnum('page_section', [
+  'income_statement', 'balance_sheet', 'cash_flow',
+  'equity_statement', 'notes', 'other', 'unclassified'
+]);
+
+export const documentPages = pgTable('document_pages', {
+  id:              uuid('id').primaryKey().defaultRandom(),
+  document_id:     uuid('document_id').notNull().references(() => documents.id),
+  page_number:     integer('page_number').notNull(),
+  classification:  pageClassificationEnum('classification').default('digital'),
+  word_count:      integer('word_count').default(0),
+  section_type:    pageSectionEnum('section_type').default('unclassified'),
+  note_number:     integer('note_number'),              // set if page belongs to a specific note
+  is_selected:     boolean('is_selected').default(false), // selected for financial extraction
+  text_content:    text('text_content'),               // only stored for selected pages
+});</code></pre>
+
+  <h4>Implementation &mdash; lib/pdf/page-classifier.ts</h4>
+  <pre><code>// lib/pdf/page-classifier.ts
+import pdfParse from 'pdf-parse';
+
+export type PageClassification = 'digital' | 'scanned' | 'hybrid';
+
+export interface ClassifiedPage {
+  pageNumber: number;
+  classification: PageClassification;
+  wordCount: number;
+  asciiRatio: number;
+  textContent: string;
+  requiresOCR: boolean;
+}
+
+export async function classifyPdfPages(pdfBuffer: Buffer): Promise&lt;ClassifiedPage[]&gt; {
+  const pages: ClassifiedPage[] = [];
+
+  // pdf-parse renders page by page when a pagerender callback is provided
+  let currentPage = 0;
+  await pdfParse(pdfBuffer, {
+    pagerender: async (pageData: any) => {
+      currentPage++;
+      const text = (await pageData.getTextContent())
+        .items.map((i: any) => i.str).join(' ');
+
+      const words = text.trim().split(/\s+/).filter(w => w.length > 1);
+      const wordCount = words.length;
+      const asciiCount = [...text].filter(ch => ch.charCodeAt(0) < 128).length;
+      const asciiRatio = text.length > 0 ? asciiCount / text.length : 0;
+
+      let classification: PageClassification;
+      if (wordCount >= 80 && asciiRatio >= 0.90) {
+        classification = 'digital';
+      } else if (wordCount >= 20) {
+        classification = 'hybrid';
+      } else {
+        classification = 'scanned';
+      }
+
+      pages.push({
+        pageNumber: currentPage,
+        classification,
+        wordCount,
+        asciiRatio,
+        textContent: classification !== 'scanned' ? text : '',
+        requiresOCR: classification === 'scanned',
+      });
+    },
+  });
+
+  return pages;
+}</code></pre>
+
+  <h4>New column on documents table</h4>
+  <pre><code>page_classification_summary: jsonb  // { digital: N, scanned: N, hybrid: N, total: N }</code></pre>
+
+  <hr>
+
+  <h3>Requirement B &mdash; Financial Page Filtering</h3>
+
+  <div class="callout">
+    <strong>Problem:</strong> Annual reports run 200&ndash;400 pages. Sending all pages to Claude for extraction is expensive and introduces noise from non-financial sections (risk disclosures, governance reports, audit committee reports). Only financial statement pages and their associated notes should be extracted.
+  </div>
+
+  <h4>Solution design</h4>
+  <p>Two-stage filtering applied to all <code>digital</code> and <code>hybrid</code> pages after classification:</p>
+  <ol style="font-size:14px;color:var(--ink2);line-height:2;padding-left:1.5rem">
+    <li><strong>Stage 1 &mdash; Heading keyword scan (deterministic, fast):</strong> Each page&rsquo;s text is scanned for section heading patterns within the first 300 characters. Pages matching a financial section pattern are promoted to <em>candidates</em>.</li>
+    <li><strong>Stage 2 &mdash; Boundary detection:</strong> Candidates are grouped into contiguous sections (a balance sheet section typically runs 2&ndash;6 pages). A trailing window of up to 5 pages after a section heading is included to capture continuation pages.</li>
+    <li><strong>Note page detection:</strong> Pages beginning with &ldquo;Note [N]&rdquo; or &ldquo;[N]. [Title]&rdquo; in the heading area are tagged with their note number for entity linking.</li>
+  </ol>
+
+  <h4>Section heading patterns</h4>
+  <pre><code>// lib/pdf/page-filter.ts
+export const SECTION_PATTERNS: Record&lt;PageSection, RegExp[]&gt; = {
+  income_statement: [
+    /statement\s+of\s+(profit|income|operations|comprehensive\s+income)/i,
+    /consolidated\s+(statement\s+of\s+)?(profit|income)/i,
+    /profit\s+(and|&amp;)\s+loss\s+(account|statement)/i,
+    /income\s+statement/i,
+  ],
+  balance_sheet: [
+    /balance\s+sheet/i,
+    /statement\s+of\s+financial\s+position/i,
+    /consolidated\s+balance\s+sheet/i,
+  ],
+  cash_flow: [
+    /cash\s+flow\s+statement/i,
+    /statement\s+of\s+cash\s+flows/i,
+    /consolidated\s+cash\s+flow/i,
+  ],
+  equity_statement: [
+    /statement\s+of\s+changes\s+in\s+equity/i,
+    /changes\s+in\s+(shareholders|stockholders|members)\s+(equity|capital)/i,
+    /equity\s+roll-?forward/i,
+  ],
+  notes: [
+    /^notes?\s+to\s+the\s+(consolidated\s+)?(financial\s+statements?|accounts)/i,
+    /^note\s+\d+/i,
+    /^\d+\.\s+[A-Z][A-Z\s]+$/m,  // Numbered note heading in caps
+  ],
+};</code></pre>
+
+  <h4>Implementation &mdash; lib/pdf/page-filter.ts</h4>
+  <pre><code>export interface FilterResult {
+  selectedPages: Map&lt;PageSection, number[]&gt;;
+  notePageMap: Map&lt;number, number[]&gt;;   // note_number -&gt; page_numbers
+  filteredPageCount: number;
+  totalPageCount: number;
+  reductionRatio: number;               // e.g. 0.12 = 12% of pages retained
+}
+
+export function filterFinancialPages(
+  classifiedPages: ClassifiedPage[]
+): FilterResult {
+  const digitalPages = classifiedPages.filter(p => p.classification !== 'scanned');
+  const selected = new Map&lt;PageSection, number[]&gt;();
+  const notePageMap = new Map&lt;number, number[]&gt;();
+
+  for (const page of digitalPages) {
+    const heading = page.textContent.slice(0, 400);
+    for (const [section, patterns] of Object.entries(SECTION_PATTERNS)) {
+      if (patterns.some(p =&gt; p.test(heading))) {
+        const arr = selected.get(section as PageSection) ?? [];
+        arr.push(page.pageNumber);
+        selected.set(section as PageSection, arr);
+        break;
+      }
+    }
+    // Detect note pages
+    const noteMatch = heading.match(/^note\s+(\d+)/i) ??
+                      heading.match(/^(\d+)\.\s+[A-Z]/m);
+    if (noteMatch) {
+      const num = parseInt(noteMatch[1]);
+      const pages = notePageMap.get(num) ?? [];
+      pages.push(page.pageNumber);
+      notePageMap.set(num, pages);
+    }
+  }
+
+  // Expand each section by trailing-window (continuation pages)
+  for (const [section, pages] of selected) {
+    const expanded = expandWithContinuationPages(pages, digitalPages, 5);
+    selected.set(section, expanded);
+  }
+
+  const allSelected = new Set([...selected.values()].flat());
+  return {
+    selectedPages: selected,
+    notePageMap,
+    filteredPageCount: allSelected.size,
+    totalPageCount: classifiedPages.length,
+    reductionRatio: allSelected.size / classifiedPages.length,
+  };
+}</code></pre>
+
+  <h4>Typical reduction ratios across the 19 demo documents</h4>
+  <table class="schema-table">
+    <thead><tr><th>Document</th><th>Total pages</th><th>Est. selected</th><th>Reduction</th></tr></thead>
+    <tbody>
+      <tr><td>Aspect Capital 2023</td><td>46</td><td>~18</td><td>61% filtered out</td></tr>
+      <tr><td>Orient Securities 2024</td><td>~220</td><td>~35</td><td>84% filtered out</td></tr>
+      <tr><td>Freddie Mac 2023</td><td>~180</td><td>~40</td><td>78% filtered out</td></tr>
+      <tr><td>Jane Street Group 2024</td><td>~42</td><td>~20</td><td>52% filtered out</td></tr>
+      <tr><td>HDFC Credila 2023</td><td>~120</td><td>~25</td><td>79% filtered out</td></tr>
+    </tbody>
+  </table>
+
+  <hr>
+
+  <h3>Requirement C &mdash; Standalone vs Consolidated, Multi-Year &amp; Actuals/Forecast</h3>
+
+  <div class="callout">
+    <strong>Problem:</strong> Annual reports commonly contain <em>both</em> standalone (parent entity alone) and consolidated (parent + subsidiaries) financial statements &mdash; particularly common in Indian NBFC reports (T3) and UK holding companies (T5). Multi-year reports present 3&ndash;5 year columns. Some statements include budget/forecast or restated columns alongside actuals.
+  </div>
+
+  <h4>Solution A &mdash; Standalone vs Consolidated detection</h4>
+  <p>Applied during template classification. The classifier returns a <code>statement_scopes</code> array indicating which scopes are present. Each extracted statement is then tagged with its scope.</p>
+  <pre><code>// Addition to Zod classification schema in lib/claude/classify.ts
+statement_scopes: z.array(z.enum(['standalone', 'consolidated', 'unknown'])),
+// e.g. ['standalone', 'consolidated'] means both present in the document</code></pre>
+
+  <p>Heading signals for scope detection:</p>
+  <table class="schema-table">
+    <thead><tr><th>Scope</th><th>Heading signals</th></tr></thead>
+    <tbody>
+      <tr><td><code>consolidated</code></td><td>&ldquo;Consolidated Balance Sheet&rdquo;, &ldquo;Consolidated Statement of&hellip;&rdquo;, &ldquo;Group&rdquo; in heading</td></tr>
+      <tr><td><code>standalone</code></td><td>&ldquo;Standalone Balance Sheet&rdquo;, &ldquo;Standalone Statement of&hellip;&rdquo;, &ldquo;Company&rdquo; (without Group) in heading</td></tr>
+    </tbody>
+  </table>
+
+  <h4>New columns on extracted_rows and mapped_rows</h4>
+  <pre><code>// lib/db/schema.ts additions
+// On extracted_rows:
+statement_scope: text('statement_scope').default('unknown'),  // 'standalone' | 'consolidated' | 'unknown'
+column_metadata: jsonb('column_metadata'),
+// e.g. { "2024": { "type": "actual" }, "2023": { "type": "actual" },
+//         "2022": { "type": "actual" }, "2022R": { "type": "restated" } }
+
+// On mapped_rows:
+statement_scope: text('statement_scope').default('unknown'),</code></pre>
+
+  <h4>Solution B &mdash; Multi-year column detection</h4>
+  <p>The extraction prompt is enhanced to return all year columns detected, not just the two most recent. The column classifier then labels each column.</p>
+  <pre><code>// lib/pdf/column-classifier.ts
+export type ColumnType = 'actual' | 'budget' | 'forecast' | 'restated' | 'unknown';
+
+export interface ColumnMetadata {
+  label: string;        // raw column header, e.g. "2023" or "Year ended Mar 31, 2022"
+  year: number;         // parsed year integer
+  type: ColumnType;
+}
+
+const COLUMN_TYPE_PATTERNS: Record&lt;ColumnType, RegExp[]&gt; = {
+  restated: [/(restated|re-stated|revised|as\s+restated)/i],
+  budget:   [/(budget|budgeted)/i],
+  forecast: [/(forecast|projected|projected|estimate)/i],
+  actual:   [],  // default if none of the above match
+};
+
+export function classifyColumnHeaders(rawHeaders: string[]): ColumnMetadata[] {
+  return rawHeaders.map(header =&gt; {
+    const yearMatch = header.match(/20\d{2}|19\d{2}/);
+    const year = yearMatch ? parseInt(yearMatch[0]) : 0;
+    let type: ColumnType = 'actual';
+    for (const [t, patterns] of Object.entries(COLUMN_TYPE_PATTERNS)) {
+      if (patterns.some(p =&gt; p.test(header))) {
+        type = t as ColumnType;
+        break;
+      }
+    }
+    return { label: header, year, type };
+  });
+}</code></pre>
+
+  <h4>Solution C &mdash; Actuals vs Forecast/Restated handling</h4>
+  <p>The mapping engine ignores forecast/budget columns for V01&ndash;V12 validation checks (validation only runs against <code>actual</code> columns). Restated columns are extracted and stored but not used as the primary value for validation. The review workbench shows a column type badge next to each year header.</p>
+
+  <hr>
+
+  <h3>Requirement D &mdash; Entity Linking (Notes to Accounts)</h3>
+
+  <div class="callout">
+    <strong>Problem:</strong> Financial line items reference notes throughout (e.g., &ldquo;Property, Plant &amp; Equipment (Note 12)&rdquo;). Currently note references are extracted as a raw string but not linked to note content. Entity linking builds a bidirectional index so every line item links to its full note text, and every note links to the line items that reference it.
+  </div>
+
+  <h4>Solution design</h4>
+  <ol style="font-size:14px;color:var(--ink2);line-height:2;padding-left:1.5rem">
+    <li>Page filter (Requirement B) has already identified note pages and built a <code>notePageMap: Map&lt;number, number[]&gt;</code>.</li>
+    <li>A new pipeline stage &mdash; Note Extraction &mdash; runs after financial row extraction. It iterates each note in the notePageMap and calls Claude to extract the note title, summary text, and any sub-tables.</li>
+    <li>The extracted rows already have a <code>note_ref</code> field (e.g., &ldquo;Note 12&rdquo;). The entity linker parses the note number from this field and writes a foreign key relationship to the <code>note_entries</code> table.</li>
+    <li>The review workbench shows a clickable &ldquo;Note 12 &rarr;&rdquo; link on any row with a note reference. Clicking opens a side-panel showing the full note text and any sub-tables.</li>
+  </ol>
+
+  <h4>New database table &mdash; note_entries</h4>
+  <pre><code>// lib/db/schema.ts
+export const noteEntries = pgTable('note_entries', {
+  id:                 uuid('id').primaryKey().defaultRandom(),
+  document_id:        uuid('document_id').notNull().references(() => documents.id),
+  note_number:        integer('note_number').notNull(),
+  note_title:         text('note_title'),
+  pages:              integer('pages').array(),          // page numbers where this note appears
+  raw_text:           text('raw_text'),                  // full extracted text of the note
+  extracted_subtables:jsonb('extracted_subtables'),      // any tables found in the note
+  linked_row_ids:     uuid('linked_row_ids').array(),    // extracted_row IDs referencing this note
+  created_at:         timestamp('created_at', { withTimezone: true }).defaultNow(),
+});</code></pre>
+
+  <h4>Implementation &mdash; lib/claude/extract-notes.ts</h4>
+  <pre><code>// lib/claude/extract-notes.ts
+import { generateObject } from 'ai';
+import { anthropic } from '@ai-sdk/anthropic';
+import { z } from 'zod';
+
+const noteSchema = z.object({
+  note_number: z.number().int(),
+  note_title:  z.string(),
+  summary:     z.string().max(500),  // brief summary of what this note covers
+  sub_tables:  z.array(z.object({
+    table_title: z.string().optional(),
+    rows: z.array(z.object({
+      label: z.string(),
+      values: z.record(z.string(), z.number().nullable()),
+    })),
+  })),
+});
+
+export async function extractNote(
+  noteText: string,
+  noteNumber: number,
+  templateType: string
+): Promise&lt;z.infer&lt;typeof noteSchema&gt;&gt; {
+  const { object } = await generateObject({
+    model: anthropic('claude-sonnet-4-5'),
+    schema: noteSchema,
+    prompt: `Extract structured data from this financial statement note (Note ${noteNumber}).
+Template: ${templateType}
+Note text:
+${noteText.slice(0, 4000)}`,
+  });
+  return object;
+}</code></pre>
+
+  <h4>Entity linker &mdash; lib/mapping/entity-linker.ts</h4>
+  <pre><code>// lib/mapping/entity-linker.ts
+export function parseNoteNumber(noteRef: string | null): number | null {
+  if (!noteRef) return null;
+  const match = noteRef.match(/\d+/);
+  return match ? parseInt(match[0]) : null;
+}
+
+export async function linkNotesToRows(
+  documentId: string,
+  extractedRows: ExtractedRow[],
+  noteEntries: NoteEntry[]
+): Promise&lt;void&gt; {
+  const noteMap = new Map(noteEntries.map(n =&gt; [n.note_number, n.id]));
+
+  for (const row of extractedRows) {
+    const noteNum = parseNoteNumber(row.note_ref);
+    if (noteNum && noteMap.has(noteNum)) {
+      // Write bidirectional link: update note_entries.linked_row_ids
+      await db.execute(sql`
+        UPDATE note_entries
+        SET linked_row_ids = array_append(linked_row_ids, ${row.id}::uuid)
+        WHERE document_id = ${documentId} AND note_number = ${noteNum}
+      `);
+    }
+  }
+}</code></pre>
+
+  <h4>Note count estimates for the 19 demo documents</h4>
+  <table class="schema-table">
+    <thead><tr><th>Template</th><th>Typical note count</th><th>Typical note pages</th></tr></thead>
+    <tbody>
+      <tr><td>T1 US GAAP (Freddie Mac)</td><td>25&ndash;40 notes</td><td>60&ndash;90 pages</td></tr>
+      <tr><td>T3 Ind AS NBFC (HDFC Credila)</td><td>30&ndash;50 notes</td><td>40&ndash;70 pages</td></tr>
+      <tr><td>T5 UK Co. Act (Aspect Capital)</td><td>10&ndash;20 notes</td><td>8&ndash;15 pages</td></tr>
+      <tr><td>T8 IFRS Asia (Orient Securities)</td><td>30&ndash;60 notes</td><td>80&ndash;120 pages</td></tr>
+      <tr><td>T6 UK LLP (Jade Merchant)</td><td>5&ndash;10 notes</td><td>5&ndash;8 pages</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout amber">
+    <strong>Performance note for demo:</strong> Extracting all notes from all 19 documents in the seed script will be the most time-consuming step. For the demo, extract only notes that are <em>referenced by at least one financial statement row</em> (i.e., rows where <code>note_ref</code> is not null). This reduces note extraction calls by ~60% while covering everything visible in the review workbench.
+  </div>
+
+  <hr>
+
+  <h3>Requirement E &mdash; OCR for Scanned Pages</h3>
+
+  <div class="callout">
+    <strong>Problem:</strong> The page classifier (Req A) already identifies pages as <code>scanned</code> when word count is below 20 and the text layer is absent or corrupt. Without OCR, those pages are silently skipped, which means any financial data that appears only on scanned pages is lost. OCR closes this gap by rasterising scanned pages and sending the resulting images to Claude Vision for direct financial row extraction.
+  </div>
+
+  <h4>Chosen approach &mdash; Claude Vision extraction</h4>
+  <p>Rather than a generic OCR engine (Tesseract, AWS Textract) followed by a text extraction pass, scanned pages are rasterised to PNG and sent directly to Claude using its vision capability. Claude receives the image and the same structured extraction prompt, returning the same <code>ExtractedRow[]</code> schema. This eliminates a pipeline stage, keeps the architecture uniform, and is specifically strong on financial table layouts.</p>
+  <table class="schema-table">
+    <thead><tr><th>Approach</th><th>Pros</th><th>Cons</th><th>Verdict</th></tr></thead>
+    <tbody>
+      <tr><td>Tesseract (tesseract.js)</td><td>Free, offline, no extra API key</td><td>Poor on financial tables, requires post-processing, lower accuracy on low-DPI scans</td><td>Reject</td></tr>
+      <tr><td>AWS Textract / Google Vision</td><td>High accuracy, table extraction</td><td>Additional API key, cost per page, adds vendor dependency</td><td>Reject for demo</td></tr>
+      <tr><td><strong>Claude Vision (chosen)</strong></td><td>No extra API key, uniform pipeline, strong on structured financial layouts, returns typed ExtractedRow[] directly</td><td>Higher token cost than text extraction; 1 image ≈ 1,500&ndash;2,500 input tokens</td><td><strong>Use this</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h4>Rasterisation &mdash; lib/pdf/page-rasterizer.ts</h4>
+  <p>PDF pages are rendered to PNG buffers using <code>pdfjs-dist</code> with a server-side canvas implementation (<code>@napi-rs/canvas</code>, which is Vercel-compatible). Render scale is 2.0× (default PDF resolution ×2) to give Claude sufficient detail for small financial table text.</p>
+  <pre><code>// lib/pdf/page-rasterizer.ts
+import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.js';
+import { createCanvas } from '@napi-rs/canvas';
+
+export async function rasterizePage(
+  pdfBuffer: Buffer,
+  pageNumber: number,
+  scale = 2.0
+): Promise&lt;Buffer&gt; {
+  const pdf = await pdfjs.getDocument({ data: new Uint8Array(pdfBuffer) }).promise;
+  const page = await pdf.getPage(pageNumber);
+  const viewport = page.getViewport({ scale });
+
+  const canvas = createCanvas(Math.floor(viewport.width), Math.floor(viewport.height));
+  const ctx = canvas.getContext('2d') as any;
+
+  await page.render({ canvasContext: ctx, viewport }).promise;
+  await pdf.destroy();
+
+  // Return PNG buffer at ~150-300 KB per page at 2x scale
+  return canvas.toBuffer('image/png');
+}
+
+export async function rasterizePages(
+  pdfBuffer: Buffer,
+  pageNumbers: number[],
+  scale = 2.0
+): Promise&lt;Map&lt;number, Buffer&gt;&gt; {
+  const result = new Map&lt;number, Buffer&gt;();
+  for (const pageNum of pageNumbers) {
+    result.set(pageNum, await rasterizePage(pdfBuffer, pageNum, scale));
+  }
+  return result;
+}</code></pre>
+
+  <h4>Vision-based extraction &mdash; lib/claude/extract-vision.ts</h4>
+  <p>Scanned pages use this function instead of <code>extractStatement()</code>. It sends the rasterised PNG to Claude as a base64 image alongside the same structured extraction prompt, returning the identical <code>ExtractedRow[]</code> output.</p>
+  <pre><code>// lib/claude/extract-vision.ts
+import Anthropic from '@anthropic-ai/sdk';
+import { z } from 'zod';
+
+const client = new Anthropic();
+
+const extractedRowSchema = z.object({
+  rows: z.array(z.object({
+    raw_label:         z.string(),
+    raw_values:        z.record(z.string(), z.number().nullable()),
+    section_path:      z.array(z.string()),
+    indentation_level: z.number().int().min(0).max(4),
+    is_subtotal:       z.boolean(),
+    note_ref:          z.string().optional(),
+  }))
+});
+
+export async function extractStatementFromImage(
+  imageBuffer: Buffer,
+  statementType: string,
+  templateType: string,
+  pageNumber: number
+): Promise&lt;z.infer&lt;typeof extractedRowSchema&gt;['rows']&gt; {
+  const base64 = imageBuffer.toString('base64');
+
+  const response = await client.messages.create({
+    model: 'claude-sonnet-4-5',
+    max_tokens: 4096,
+    messages: [{
+      role: 'user',
+      content: [
+        {
+          type: 'image',
+          source: { type: 'base64', media_type: 'image/png', data: base64 },
+        },
+        {
+          type: 'text',
+          text: `This is page ${pageNumber} of a financial statement (${statementType}, template: ${templateType}).
+Extract all financial line items as structured rows.
+Return JSON matching this schema exactly:
+{
+  "rows": [
+    {
+      "raw_label": "string (verbatim label from the image)",
+      "raw_values": { "2024": number | null, "2023": number | null },
+      "section_path": ["string"],
+      "indentation_level": 0-4,
+      "is_subtotal": boolean,
+      "note_ref": "string | null"
+    }
+  ]
+}
+Rules: raw_label must be the exact text from the image. Negative values use negative numbers, not parentheses. Return only JSON.`,
+        },
+      ],
+    }],
+  });
+
+  const text = response.content.find(b => b.type === 'text')?.text ?? '{"rows":[]}';
+  const clean = text.replace(/```json|```/g, '').trim();
+  const parsed = extractedRowSchema.parse(JSON.parse(clean));
+  return parsed.rows;
+}</code></pre>
+
+  <h4>Updated Stage 5 branch in the pipeline</h4>
+  <pre><code>// In app/api/documents/route.ts — Stage 5 extraction (updated)
+for (const [section, pages] of filterResult.selectedPages) {
+  if (section === 'notes') continue;
+  const rows = [];
+
+  for (const pageNum of pages) {
+    const page = classifiedPages.find(p => p.pageNumber === pageNum)!;
+
+    if (page.classification === 'scanned') {
+      // OCR path: rasterise + Claude Vision
+      const imageBuffer = await rasterizePage(buffer, pageNum);
+      const ocrRows = await extractStatementFromImage(
+        imageBuffer, section, classification.template_type, pageNum
+      );
+      rows.push(...ocrRows.map(r => ({
+        ...r, source_page: pageNum, ocr_method: 'claude_vision'
+      })));
+
+      // Mark page in DB as OCR'd
+      await db.update(documentPages)
+        .set({ ocr_method: 'claude_vision' })
+        .where(and(
+          eq(documentPages.document_id, doc.id),
+          eq(documentPages.page_number, pageNum)
+        ));
+    } else {
+      // Standard text path
+      const pageText = page.textContent ?? '';
+      const textRows = await extractStatement(pageText, section, classification.template_type);
+      rows.push(...textRows.map(r => ({ ...r, source_page: pageNum, ocr_method: 'none' })));
+    }
+  }
+
+  const scope = detectScope(rows.map(r => r.raw_label).join(' '));
+  const colMeta = classifyColumnHeaders(detectColumnHeaders(
+    rows.map(r => Object.keys(r.raw_values)).flat()
+  ));
+  allExtractedRows.push(...rows.map(r => ({
+    ...r, document_id: doc.id, statement_scope: scope, column_metadata: colMeta
+  })));
+}</code></pre>
+
+  <h4>Data model addition</h4>
+  <pre><code>// Additional column on document_pages (add to schema.ts)
+ocr_method: text('ocr_method').default('none'),
+// 'none' = digital page, text extracted normally
+// 'claude_vision' = scanned page, extracted via Claude Vision</code></pre>
+
+  <h4>New npm packages for OCR</h4>
+  <pre><code>npm install pdfjs-dist @napi-rs/canvas @anthropic-ai/sdk</code></pre>
+  <p>Note: <code>@anthropic-ai/sdk</code> is used directly here (not the Vercel AI SDK wrapper) because the Vision API requires the <code>image</code> content block format. <code>@napi-rs/canvas</code> is Vercel-compatible and requires no native build steps. Add <code>pdfjs-dist</code> to <code>serverExternalPackages</code> in <code>next.config.ts</code>.</p>
+
+  <h4>OCR in the UI</h4>
+  <p>Four places in the UI change when OCR pages are detected:</p>
+  <ul style="font-size:14px;color:var(--ink2);padding-left:1.5rem;line-height:2">
+    <li><strong>Upload screen pipeline steps card</strong> — Step 2 (page classification) shows the split: &ldquo;22 digital, 3 scanned&rdquo;. Step 5 shows &ldquo;Extracting via OCR (3 pages)&rdquo; for scanned pages.</li>
+    <li><strong>Document Library table</strong> — the &ldquo;OCR required&rdquo; column (already in the design) now shows &ldquo;3 pages&rdquo; in amber instead of just a boolean.</li>
+    <li><strong>Review Workbench</strong> — rows extracted from scanned pages show a small amber &ldquo;OCR&rdquo; badge next to the raw label and have a slightly lower default confidence score (confidence engine applies a 0.05 penalty for OCR-sourced rows).</li>
+    <li><strong>Validation Dashboard</strong> — if a V01&ndash;V12 check fails and the contributing rows include OCR rows, the failure card notes &ldquo;Contains OCR-extracted values &mdash; verify source manually.&rdquo;</li>
+  </ul>
+
+  <div class="callout amber">
+    <strong>OCR token cost estimate for the demo:</strong> All 19 demo documents are text-based PDFs so OCR will not trigger during the seed run. When a scanned document is uploaded post-demo, each scanned page costs approximately 1,500&ndash;2,500 additional input tokens (the rasterised PNG) plus the normal extraction output tokens. For a document with 10 scanned pages, this adds roughly $0.03&ndash;$0.05 to extraction cost &mdash; acceptable for demo purposes.
+  </div>
+
+</div>
+
+<div class="section" id="pipeline">
+  <div class="section-label">Section 04</div>
+  <h2>Synchronous Processing Pipeline (enhanced)</h2>
+  <p>The demo runs the entire pipeline synchronously inside a single Next.js API route. No QStash, no Redis, no background workers. Vercel function timeout is set to 300 seconds. The pipeline now includes page classification, financial page filtering, note entity extraction, and scope detection as additional stages.</p>
+  <div class="callout amber"><strong>No background queue in demo.</strong> All stages run inline. Processing time per document: <strong>30&ndash;90 seconds</strong> (longer than before due to note extraction). The UI shows a spinner with a stage indicator during processing.</div>
+  <!-- removed production pipeline description --> run as background tasks via QStash webhooks to bypass serverless timeout limits.</p>
+
+  <div class="pipeline">
+
+    <div class="pipeline-step">
+      <div class="step-num">01</div>
+      <div class="step-content">
+        <h4>Upload &amp; Ingest <span class="step-tag tag-det">deterministic</span></h4>
+        <!-- removed -->ount, and triggers a QStash job. Returns a <code>document_id</code> immediately.</p>
+      </div>
+    </div>
+
+    <div class="pipeline-step">
+      <div class="step-num">02</div>
+      <div class="step-content">
+        <h4>Pre-processing <span class="step-tag tag-async">async job</span></h4>
+        <p>PDF text extraction via <code>pdf-parse</code>. Page-level image rasterization via <code>pdfjs-dist</code> for OCR candidates. Table boundary detection. Statement page identification (look for "Balance Sheet", "Income Statement" etc. within 50 words of a page break).</p>
+      </div>
+    </div>
+
+    <div class="pipeline-step">
+      <div class="step-num">03</div>
+      <div class="step-content">
+        <h4>Template Classification <span class="step-tag tag-claude">Claude</span></h4>
+        <p>Claude receives: detected currency, scale hints, 20 sample label strings from financial pages, and presence/absence of key signal terms. Returns: <code>template_type</code> (T1–T8), confidence score 0–1, and top 5 signals matched. Falls back to "T0_unknown" if confidence &lt; 0.6.</p>
+      </div>
+    </div>
+
+    <div class="pipeline-step">
+      <div class="step-num">04</div>
+      <div class="step-content">
+        <h4>Raw Row Extraction <span class="step-tag tag-claude">Claude</span> <span class="step-tag tag-async">async job</span></h4>
+        <p>Per-statement-page: Claude receives page text (or rasterized image for OCR pages), template type, and a structured JSON schema. Returns each row with: raw label, raw value(s) per year column, page number, section path, note references, and indentation level. Labels preserved verbatim.</p>
+      </div>
+    </div>
+
+    <div class="pipeline-step">
+      <div class="step-num">05</div>
+      <div class="step-content">
+        <h4>Mapping &amp; Normalization <span class="step-tag tag-claude">Claude (fallback)</span> <span class="step-tag tag-det">rule-based primary</span></h4>
+        <p>Label normalization → canonical dictionary lookup → context-aware disambiguation → hierarchy &amp; rollup → unit/currency normalization. Claude invoked only for labels with dictionary confidence &lt; 0.7. Every mapping records its method: <code>dictionary</code>, <code>claude</code>, or <code>override</code>.</p>
+      </div>
+    </div>
+
+    <div class="pipeline-step">
+      <div class="step-num">06</div>
+      <div class="step-content">
+        <h4>Formula Validation <span class="step-tag tag-det">deterministic</span></h4>
+        <p>Run 12 accounting identities: assets = liabilities + equity; net income = PBT – tax; opening cash + movements = closing cash; revenue components sum to total revenue; etc. Each check returns: passed / failed / skipped (field missing). Tolerance: ±0.5% for rounding variance.</p>
+      </div>
+    </div>
+
+    <div class="pipeline-step">
+      <div class="step-num">07</div>
+      <div class="step-content">
+        <h4>Review Queue Population <span class="step-tag tag-det">deterministic</span></h4>
+        <p>All rows with mapping confidence &lt; 0.8 or validation failures are flagged <code>needs_review</code>. Auto-approve rows with confidence ≥ 0.95 and zero validation errors. Push document status to <code>ready_for_review</code>. Document status is updated in the UI in real-time.</p>
+      </div>
+    </div>
+
+    <div class="pipeline-step">
+      <div class="step-num">08</div>
+      <div class="step-content">
+        <h4>Analyst Review <span class="step-tag tag-det">human-in-the-loop</span></h4>
+        <p>Analyst views source PDF alongside extracted data. Can override any canonical field, correct values, and add review notes. Corrections stored in <code>review_overrides</code> table and feed back into the mapping confidence model over time.</p>
+      </div>
+    </div>
+
+    <div class="pipeline-step">
+      <div class="step-num">09</div>
+      <div class="step-content">
+        <h4>Export <span class="step-tag tag-det">deterministic</span></h4>
+        <p>Generate: canonical JSON, flattened CSV, multi-sheet XLSX (one tab per statement type), and a PDF review pack. All exports stored in Vercel Blob with signed download URLs valid for 7 days.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- SECTION 3: MAPPING ENGINE -->
+
+  <h3>Enhanced Pipeline &mdash; 10 Stages</h3>
+  <table class="schema-table">
+    <thead><tr><th>Stage</th><th>Name</th><th>Type</th><th>New in this version</th></tr></thead>
+    <tbody>
+      <tr><td>01</td><td>Upload to Vercel Blob + create document record</td><td>Deterministic</td><td></td></tr>
+      <tr><td>02</td><td>Per-page classification (digital / scanned / hybrid)</td><td>Deterministic</td><td>&#10003; New (Req A)</td></tr>
+      <tr><td>03</td><td>Financial page filtering — isolate statement + note pages</td><td>Deterministic</td><td>&#10003; New (Req B)</td></tr>
+      <tr><td>04</td><td>Template classification (Claude) — filtered pages only</td><td>Claude AI</td><td>Enhanced: now detects statement_scopes (standalone/consolidated)</td></tr>
+      <tr><td>05</td><td>Row extraction per statement (Claude) — scope + column aware</td><td>Claude AI</td><td>Enhanced: detects statement_scope, multi-year columns, actuals/forecast (Req C)</td></tr>
+      <tr><td>06</td><td>Note entity extraction — referenced notes only (Claude)</td><td>Claude AI</td><td>&#10003; New (Req D)</td></tr>
+      <tr><td>07</td><td>Mapping engine (M1&ndash;M9)</td><td>Rule-based</td><td>M7&ndash;M9 new (see Section 05)</td></tr>
+      <tr><td>08</td><td>Entity linking — notes &#8596; row bidirectional index</td><td>Deterministic</td><td>&#10003; New (Req D)</td></tr>
+      <tr><td>09</td><td>Validation V01&ndash;V12 (actual columns only)</td><td>Deterministic</td><td>Enhanced: skips budget/forecast columns</td></tr>
+      <tr><td>10</td><td>Status update + review queue population</td><td>Deterministic</td><td></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Enhanced API Route</h3>
+  <pre><code>// app/api/documents/route.ts (enhanced demo version)
+export async function POST(req: NextRequest) {
+  const file = formData.get('file') as File;
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  // Stage 1: Upload + create record
+  const blob = await put(file.name, file, { access: 'private' });
+  const [doc] = await db.insert(documents).values({ blob_url: blob.url, ... }).returning();
+
+  // Stage 2: Per-page classification (digital/scanned/hybrid)
+  const classifiedPages = await classifyPdfPages(buffer);  // lib/pdf/page-classifier.ts
+  await db.insert(documentPages).values(classifiedPages.map(p => ({
+    document_id: doc.id, page_number: p.pageNumber,
+    classification: p.classification, word_count: p.wordCount,
+  })));
+
+  // Stage 3: Financial page filtering
+  const filterResult = filterFinancialPages(classifiedPages);  // lib/pdf/page-filter.ts
+  // filterResult.selectedPages: Map&lt;section, page[]&gt;
+  // filterResult.notePageMap: Map&lt;noteNumber, page[]&gt;
+
+  // Stage 4: Template classification (Claude) — filtered text only
+  const filteredText = buildFilteredText(classifiedPages, filterResult);
+  const classification = await classifyDocument(filteredText.labels, filteredText.raw);
+  // classification.statement_scopes: ['standalone','consolidated']
+
+  // Stage 5: Row extraction — scope + column aware
+  const allRows = [];
+  for (const [section, pages] of filterResult.selectedPages) {
+    if (section === 'notes') continue;
+    const pageText = getPagesText(classifiedPages, pages);
+    const scope = detectScope(pageText);           // 'standalone' | 'consolidated'
+    const colMeta = classifyColumnHeaders(pageText); // actuals/forecast/restated per year
+    const rows = await extractStatement(pageText, section, classification.template_type);
+    allRows.push(...rows.map(r => ({ ...r, statement_scope: scope, column_metadata: colMeta })));
+  }
+  await db.insert(extracted_rows).values(allRows.map(r => ({ document_id: doc.id, ...r })));
+
+  // Stage 6: Note entity extraction (Claude) — only referenced notes
+  const referencedNotes = [...new Set(allRows.map(r => parseNoteNumber(r.note_ref)).filter(Boolean))];
+  const noteRecords = [];
+  for (const noteNum of referencedNotes) {
+    const pages = filterResult.notePageMap.get(noteNum) ?? [];
+    if (!pages.length) continue;
+    const noteData = await extractNote(getPagesText(classifiedPages, pages), noteNum, classification.template_type);
+    noteRecords.push({ document_id: doc.id, note_number: noteNum, ...noteData, pages });
+  }
+  const savedNotes = await db.insert(noteEntries).values(noteRecords).returning();
+
+  // Stage 7: Mapping engine M1-M9
+  const mappedRows = await runMappingEngine(allRows, classification.template_type, doc.id);
+  await db.insert(mapped_rows).values(mappedRows);
+
+  // Stage 8: Entity linking — bidirectional notes ↔ rows
+  await linkNotesToRows(doc.id, allRows, savedNotes);
+
+  // Stage 9: Validation (actual columns only — skip budget/forecast)
+  const actualMapped = mappedRows.filter(r => r.column_metadata?.type !== 'forecast');
+  const validationReport = runAllValidations(buildCanonicalMap(actualMapped));
+
+  // Stage 10: Status update
+  await db.update(documents).set({ status: 'needs_review' or 'approved', validation_results: validationReport });
+  return NextResponse.json({ documentId: doc.id, filterResult.reductionRatio, notesExtracted: savedNotes.length });
+}</code></pre>
+
+</div>
+
+<div class="section" id="mapping">
+  <div class="section-label">Section 05</div>
+  <h2>Mapping Engine Design</h2>
+  <p>The mapping engine is a standalone module — not entangled with the extraction layer. It transforms raw row labels into canonical financial concepts. Six internal modules in sequence.</p>
+
+  <h3>Module 1 — Label Normalizer</h3>
+  <p>Pure string transformations. Runs before any dictionary lookup.</p>
+  <ul>
+    <li>Strip leading Roman/Arabic numerals: <code>"VII. Profit for the year"</code> → <code>"profit for the year"</code></li>
+    <li>Remove note references: <code>"Interest income (Note 21)"</code> → <code>"interest income"</code></li>
+    <li>Expand common abbreviations: PBT → profit before tax, PAT → profit after tax, EPS → earnings per share</li>
+    <li>Normalize whitespace, lowercase, strip parenthetical qualifiers like <em>(Restated)</em> or <em>(net)</em></li>
+    <li>Handle multi-line labels common in Asian templates (translated text)</li>
+  </ul>
+
+  <h3>Module 2 — Canonical Dictionary</h3>
+  <p>A JSON lookup table of ~400 label → canonical field mappings, organized by template family. Each entry includes a <strong>base match</strong> (exact normalized string) and optional <strong>partial matches</strong> (for label variants).</p>
+
+  <pre><code>{
+  "profit for the year": {
+    "canonical_field": "net_income",
+    "templates": ["T1","T3","T5","T7","T8"],
+    "confidence": 0.98
+  },
+  "loss for the financial year available for discretionary distribution": {
+    "canonical_field": "net_income",
+    "templates": ["T6"],
+    "confidence": 0.99
+  },
+  "brokerage handling fee income": {
+    "canonical_field": "commission_income",
+    "templates": ["T8"],
+    "confidence": 0.97
+  },
+  "reserve u/s 45-ic of reserve bank of india act 1934": {
+    "canonical_field": "statutory_reserve_rbi",
+    "templates": ["T3"],
+    "confidence": 1.0
+  }
+}</code></pre>
+
+  <h3>Module 3 — Context-Aware Disambiguator</h3>
+  <p>For labels that appear in multiple statements with different meanings. Uses: <code>statement_type</code>, <code>section_path</code>, <code>row_neighbors</code>, and <code>template_type</code> as context signals.</p>
+  <ul>
+    <li><code>"other income"</code> in income statement → <code>other_income</code></li>
+    <li><code>"other income"</code> appearing below "total assets" → likely a balance sheet subtotal, flag for review</li>
+    <li><code>"interest income"</code> in cash flow statement (investing section) → <code>interest_received_investing</code></li>
+    <li><code>"interest income"</code> in income statement → <code>interest_income</code></li>
+  </ul>
+
+  <h3>Module 4 — Hierarchy &amp; Rollup Engine</h3>
+  <p>Builds the statement tree from indentation levels and subtotal detection. Validates that child rows sum to their parent subtotals. Infers missing intermediate totals where the arithmetic is unambiguous.</p>
+
+  <pre><code>income_statement_tree:
+  revenue:
+    interest_income: 131,584
+    fee_income: 2,922
+    other_operating_income: 710
+    → total_revenue_from_operations: 135,217  ✓ (sums correctly)
+  other_income: 0
+  → total_income: 135,217
+  expenses:
+    finance_costs: 81,327
+    impairment_on_financial_instruments: 8,743
+    ...
+  profit_before_tax: 37,020  ✓</code></pre>
+
+  <h3>Module 5 — Formula Validator</h3>
+  <p>Twelve accounting identity checks. Each returns <code>passed</code>, <code>failed</code>, or <code>skipped</code>.</p>
+
+  <table class="schema-table">
+    <thead>
+      <tr><th>Check ID</th><th>Identity</th><th>Tolerance</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>V01</td><td>total_assets = total_liabilities + total_equity</td><td>0.1%</td></tr>
+      <tr><td>V02</td><td>profit_before_tax = total_income – total_expenses</td><td>0.5%</td></tr>
+      <tr><td>V03</td><td>net_income = profit_before_tax – income_tax_expense</td><td>0.1%</td></tr>
+      <tr><td>V04</td><td>total_comprehensive_income = net_income + other_comprehensive_income</td><td>0.1%</td></tr>
+      <tr><td>V05</td><td>cash_end = cash_start + net_operating + net_investing + net_financing</td><td>0.5%</td></tr>
+      <tr><td>V06</td><td>revenue components sum to total_revenue</td><td>0.5%</td></tr>
+      <tr><td>V07</td><td>expense components sum to total_expenses</td><td>0.5%</td></tr>
+      <tr><td>V08</td><td>current_assets + non_current_assets = total_assets</td><td>0.1%</td></tr>
+      <tr><td>V09</td><td>opening_equity + comprehensive_income + dividends + other = closing_equity</td><td>0.5%</td></tr>
+      <tr><td>V10</td><td>EPS = net_income / weighted_avg_shares (T1/T3 only)</td><td>1.0%</td></tr>
+      <tr><td>V11</td><td>members_capital balances reconcile (T6 only)</td><td>0.1%</td></tr>
+      <tr><td>V12</td><td>year-over-year: prior year comparative matches prior document</td><td>0.0%</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Module 6 — Confidence &amp; Review Engine</h3>
+  <p>Assigns a composite confidence score (0–1) to each mapped row. Score is a weighted combination of: dictionary match quality, context signal alignment, formula validation pass/fail, and historical analyst agreement rate for this template × label pair.</p>
+
+  <div class="callout green">
+    <strong>Review threshold:</strong> Rows with composite confidence &lt; 0.80 are auto-flagged for analyst review. Rows with confidence ≥ 0.95 and V01–V09 passing are auto-approved. Target: &lt;15% of rows require manual review for T1/T3/T5 templates.
+  </div>
+</div>
+
+
+<!-- SECTION 4: DATA MODEL -->
+<div class="section" id="schema">
+  <div class="section-label">Section 06</div>
+  <h2>Data Model</h2>
+  <p>Six tables in Neon Postgres, using Drizzle ORM. Designed for the three-layer storage pattern: raw → mapped → reviewed.</p>
+
+  <h3>documents</h3>
+  <table class="schema-table">
+    <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><code class="f-pk">document_id</code></td><td>uuid pk</td><td>Primary key</td></tr>
+      <tr><td><code>file_name</code></td><td>text</td><td>Original upload name</td></tr>
+      <tr><td><code>company_name</code></td><td>text</td><td>Extracted or user-provided</td></tr>
+      <tr><td><code>report_year</code></td><td>int[]</td><td>Array — some docs have 2–3 year columns</td></tr>
+      <tr><td><code>blob_url</code></td><td>text</td><td>Vercel Blob signed URL</td></tr>
+      <tr><td><code>page_count</code></td><td>int</td><td></td></tr>
+      <tr><td><code>ocr_required</code></td><td>boolean</td><td>Set by pre-processing</td></tr>
+      <tr><td><code>template_type</code></td><td>text</td><td>T1–T8 or T0_unknown</td></tr>
+      <tr><td><code>classification_confidence</code></td><td>float</td><td>0–1</td></tr>
+      <tr><td><code>currency_code</code></td><td>char(3)</td><td>ISO 4217</td></tr>
+      <tr><td><code>unit_scale</code></td><td>text</td><td>thousands / lakhs / crore / millions</td></tr>
+      <tr><td><code>status</code></td><td>enum</td><td>uploaded / preprocessing / classifying / extracting / mapping / ready_for_review / reviewed / exported</td></tr>
+      <tr><td><code>created_at</code></td><td>timestamptz</td><td></td></tr>
+    </tbody>
+  </table>
+
+  <h3>extracted_rows</h3>
+  <table class="schema-table">
+    <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><code class="f-pk">row_id</code></td><td>uuid pk</td><td></td></tr>
+      <tr><td><code class="f-fk">document_id</code></td><td>uuid fk</td><td>→ documents</td></tr>
+      <tr><td><code>statement_type</code></td><td>enum</td><td>income_statement / balance_sheet / cash_flow / equity_statement</td></tr>
+      <tr><td><code>raw_label</code></td><td>text</td><td>Verbatim as extracted</td></tr>
+      <tr><td><code>raw_values</code></td><td>jsonb</td><td><code>{"2024": 131584.01, "2023": 108291.00}</code></td></tr>
+      <tr><td><code>page</code></td><td>int</td><td></td></tr>
+      <tr><td><code>section_path</code></td><td>text[]</td><td>e.g. ["revenue", "interest income"]</td></tr>
+      <tr><td><code>indentation_level</code></td><td>int</td><td>0 = top-level, 1 = subtotal, 2 = component</td></tr>
+      <tr><td><code>note_ref</code></td><td>text</td><td></td></tr>
+      <tr><td><code>is_subtotal</code></td><td>boolean</td><td></td></tr>
+    </tbody>
+  </table>
+
+  <h3>mapped_rows</h3>
+  <table class="schema-table">
+    <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><code class="f-pk">mapped_row_id</code></td><td>uuid pk</td><td></td></tr>
+      <tr><td><code class="f-fk">row_id</code></td><td>uuid fk</td><td>→ extracted_rows</td></tr>
+      <tr><td><code>canonical_field</code></td><td>text</td><td>e.g. <code>net_income</code></td></tr>
+      <tr><td><code>canonical_group</code></td><td>text</td><td>e.g. <code>profitability</code></td></tr>
+      <tr><td><code>parent_canonical_field</code></td><td>text</td><td>For rollup hierarchy</td></tr>
+      <tr><td><code>normalized_values</code></td><td>jsonb</td><td>After unit/currency conversion</td></tr>
+      <tr><td><code>normalized_currency</code></td><td>char(3)</td><td>ISO 4217</td></tr>
+      <tr><td><code>normalized_unit</code></td><td>text</td><td>Always "units" (converted from scale)</td></tr>
+      <tr><td><code>mapping_method</code></td><td>enum</td><td>dictionary / claude / override</td></tr>
+      <tr><td><code>mapping_confidence</code></td><td>float</td><td>0–1</td></tr>
+      <tr><td><code>validation_results</code></td><td>jsonb</td><td><code>{"V01": "passed", "V03": "failed"}</code></td></tr>
+      <tr><td><code>review_status</code></td><td>enum</td><td>auto_approved / needs_review / reviewed / rejected</td></tr>
+    </tbody>
+  </table>
+
+  <h3>canonical_fields (ontology reference)</h3>
+  <table class="schema-table">
+    <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><code class="f-pk">canonical_field</code></td><td>text pk</td><td>e.g. <code>net_income</code></td></tr>
+      <tr><td><code>display_name</code></td><td>text</td><td>"Net Income / Profit for the Year"</td></tr>
+      <tr><td><code>statement_type</code></td><td>text</td><td></td></tr>
+      <tr><td><code>field_group</code></td><td>text</td><td>e.g. profitability / liquidity / leverage</td></tr>
+      <tr><td><code>parent_field</code></td><td>text</td><td>For hierarchy</td></tr>
+      <tr><td><code>formula_rule</code></td><td>text</td><td>e.g. "profit_before_tax - income_tax_expense"</td></tr>
+      <tr><td><code>supported_templates</code></td><td>text[]</td><td></td></tr>
+    </tbody>
+  </table>
+
+  <h3>mapping_rules (knowledge base)</h3>
+  <table class="schema-table">
+    <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><code class="f-pk">rule_id</code></td><td>uuid pk</td><td></td></tr>
+      <tr><td><code>template_type</code></td><td>text</td><td>null = applies to all</td></tr>
+      <tr><td><code>normalized_label</code></td><td>text</td><td>After Module 1 normalization</td></tr>
+      <tr><td><code>context_pattern</code></td><td>jsonb</td><td>Optional: statement_type, section_path filters</td></tr>
+      <tr><td><code>canonical_field</code></td><td>text</td><td></td></tr>
+      <tr><td><code>confidence</code></td><td>float</td><td></td></tr>
+      <tr><td><code>source</code></td><td>enum</td><td>seed / analyst_correction / claude_suggestion</td></tr>
+      <tr><td><code>active</code></td><td>boolean</td><td></td></tr>
+    </tbody>
+  </table>
+
+  <h3>review_overrides</h3>
+  <table class="schema-table">
+    <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><code class="f-pk">override_id</code></td><td>uuid pk</td><td></td></tr>
+      <tr><td><code class="f-fk">mapped_row_id</code></td><td>uuid fk</td><td></td></tr>
+      <tr><td><code>old_canonical_field</code></td><td>text</td><td></td></tr>
+      <tr><td><code>new_canonical_field</code></td><td>text</td><td></td></tr>
+      <tr><td><code>old_value</code></td><td>numeric</td><td></td></tr>
+      <tr><td><code>new_value</code></td><td>numeric</td><td></td></tr>
+      <tr><td><code>reviewer</code></td><td>text</td><td>Email / user ID</td></tr>
+      <tr><td><code>reason</code></td><td>text</td><td>Free text note</td></tr>
+      <tr><td><code>created_at</code></td><td>timestamptz</td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+
+
+<div class="section" 
+  <h3>New Tables &amp; Columns (added for additional requirements)</h3>
+
+  <h4>New Table &mdash; document_pages</h4>
+  <pre><code>export const documentPages = pgTable('document_pages', {
+  id:             uuid('id').primaryKey().defaultRandom(),
+  document_id:    uuid('document_id').notNull().references(() => documents.id),
+  page_number:    integer('page_number').notNull(),
+  classification: text('classification').default('digital'),  // 'digital'|'scanned'|'hybrid'
+  word_count:     integer('word_count').default(0),
+  section_type:   text('section_type').default('unclassified'),
+  note_number:    integer('note_number'),             // set if this is a note page
+  is_selected:    boolean('is_selected').default(false),
+  text_content:   text('text_content'),              // stored for selected pages only
+});</code></pre>
+
+  <h4>New Table &mdash; note_entries</h4>
+  <pre><code>export const noteEntries = pgTable('note_entries', {
+  id:                  uuid('id').primaryKey().defaultRandom(),
+  document_id:         uuid('document_id').notNull().references(() => documents.id),
+  note_number:         integer('note_number').notNull(),
+  note_title:          text('note_title'),
+  pages:               integer('pages').array(),
+  raw_text:            text('raw_text'),
+  extracted_subtables: jsonb('extracted_subtables'),
+  linked_row_ids:      uuid('linked_row_ids').array(),   // extracted_row IDs
+  created_at:          timestamp('created_at', { withTimezone: true }).defaultNow(),
+});</code></pre>
+
+  <h4>New Columns on Existing Tables</h4>
+  <table class="schema-table">
+    <thead><tr><th>Table</th><th>Column</th><th>Type</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>documents</td><td>page_classification_summary</td><td>jsonb</td><td>{digital: N, scanned: N, hybrid: N, total: N}</td></tr>
+      <tr><td>documents</td><td>statement_scopes</td><td>text[]</td><td>['standalone', 'consolidated'] — which scopes are present</td></tr>
+      <tr><td>extracted_rows</td><td>statement_scope</td><td>text</td><td>'standalone' | 'consolidated' | 'unknown'</td></tr>
+      <tr><td>extracted_rows</td><td>column_metadata</td><td>jsonb</td><td>{"2024": {"type": "actual"}, "2023R": {"type": "restated"}}</td></tr>
+      <tr><td>extracted_rows</td><td>note_entry_id</td><td>uuid FK</td><td>Resolved FK to note_entries (set by entity linker)</td></tr>
+      <tr><td>mapped_rows</td><td>statement_scope</td><td>text</td><td>Carried from extracted_rows</td></tr>
+    </tbody>
+  </table>
+
+  <h4>New Query Files</h4>
+  <pre><code>lib/db/queries/document-pages.ts   — insertPageClassifications, getPagesByDocument,
+                                     getSelectedPages, getSelectedPageText
+lib/db/queries/note-entries.ts     — insertNoteEntries, getNotesByDocument,
+                                     getNoteByNumber, updateNoteLinkedRows</code></pre>
+
+id="arch">
+  <div class="section-label">Section 07</div>
+  <h2>Application Architecture &amp; Project Structure</h2>
+
+  <div class="arch-grid">
+    <div class="arch-block">
+      <h4>Next.js 14 App Router</h4>
+      <div class="arch-title">Frontend + API</div>
+      <ul>
+        <li>6 pages under <code>(dashboard)</code> route group</li>
+        <li>API routes in <code>app/api/</code></li>
+        <li>Tailwind CSS + shadcn/ui</li>
+        <li>TanStack Table for workbench</li>
+        <li>react-pdf for PDF viewer</li>
+      </ul>
+    </div>
+    <div class="arch-block">
+      <h4>Anthropic Claude</h4>
+      <div class="arch-title">AI Engine (synchronous)</div>
+      <ul>
+        <li>Vercel AI SDK — <code>generateObject()</code> for classify + extract</li>
+        <li>Model: <code>claude-sonnet-4-5</code></li>
+        <li><code>streamText()</code> for workbench Explain button</li>
+        <li>Called inline inside API route — no queue</li>
+      </ul>
+    </div>
+    <div class="arch-block">
+      <h4>Neon Postgres</h4>
+      <div class="arch-title">Database</div>
+      <ul>
+        <li><code>@neondatabase/serverless</code> driver</li>
+        <li>Drizzle ORM for type-safe queries</li>
+        <li>6 tables + 4 indexes</li>
+        <li>Vercel native integration</li>
+      </ul>
+    </div>
+    <div class="arch-block">
+      <h4>Vercel Blob</h4>
+      <div class="arch-title">File Storage</div>
+      <ul>
+        <li>Stores uploaded PDFs</li>
+        <li>Stores XLSX + JSON exports</li>
+        <li>Signed URLs, 7-day expiry</li>
+      </ul>
+    </div>
+    <div class="arch-block">
+      <h4>API Key Auth</h4>
+      <div class="arch-title">Authentication (demo only)</div>
+      <ul>
+        <li><code>DEMO_API_KEY</code> env var</li>
+        <li>Checked in middleware.ts</li>
+        <li>No sign-up, no sessions</li>
+        <li>Replace with Clerk in production</li>
+      </ul>
+    </div>
+    <div class="arch-block">
+      <h4>Export Libraries</h4>
+      <div class="arch-title">XLSX + JSON</div>
+      <ul>
+        <li><code>exceljs</code> — 8-sheet styled workbook</li>
+        <li>Native JSON serialisation</li>
+        <li>FX rates from openexchangerates.org</li>
+        <li><em>CSV + PDF deferred to production</em></li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>API Route Map</h3>
+  <pre><code>POST   /api/documents                        — Upload + full synchronous pipeline
+GET    /api/documents                        — List all documents (paginated)
+GET    /api/documents/[id]                   — Document detail
+GET    /api/documents/[id]/rows              — Extracted rows
+GET    /api/documents/[id]/mapped            — Mapped rows (filterable)
+GET    /api/documents/[id]/validation        — Run V01–V12, return report
+
+POST   /api/review/[mappedRowId]             — Submit analyst override
+GET    /api/review/[id]/explain              — Stream Claude explanation (SSE)
+
+GET    /api/export/[id]/xlsx                 — Generate XLSX, return signed URL
+GET    /api/export/[id]/json                 — Generate reviewed JSON, return signed URL
+GET    /api/export/[id]/raw-json             — Raw extraction JSON</code></pre>
+
+  <h3>Project Folder Structure</h3>
+  <pre><code>financial-spreadx/
+├── app/
+│   ├── (dashboard)/
+│   │   ├── layout.tsx               # Sidebar + topbar shell
+│   │   ├── upload/page.tsx
+│   │   ├── documents/page.tsx
+│   │   ├── review/[id]/
+│   │   │   ├── page.tsx             # Workbench
+│   │   │   └── tree/page.tsx
+│   │   ├── validation/[id]/page.tsx
+│   │   └── export/[id]/page.tsx
+│   └── api/
+│       ├── documents/route.ts       # POST = full sync pipeline
+│       ├── documents/[id]/route.ts
+│       ├── documents/[id]/rows/route.ts
+│       ├── documents/[id]/mapped/route.ts
+│       ├── documents/[id]/validation/route.ts
+│       ├── review/[mappedRowId]/route.ts
+│       ├── review/[id]/explain/route.ts
+│       └── export/[id]/
+│           ├── xlsx/route.ts
+│           ├── json/route.ts
+│           └── raw-json/route.ts
+├── lib/
+│   ├── pdf/
+│   │   ├── page-classifier.ts       # Per-page digital/scanned/hybrid classification
+│   │   ├── page-filter.ts           # Financial section + note page identification
+│   │   ├── column-classifier.ts    # Year column actual/forecast/restated detection
+│   │   └── page-rasterizer.ts      # PDF page → PNG buffer (pdfjs-dist + @napi-rs/canvas)
+│   ├── db/
+│   │   ├── schema.ts
+│   │   ├── index.ts
+│   │   └── queries/
+│   │       ├── documents.ts
+│   │       ├── extracted-rows.ts
+│   │       ├── mapped-rows.ts
+│   │       └── review-overrides.ts
+│   ├── claude/
+│   │   ├── classify.ts              # Template classification (detects scopes)
+│   │   ├── extract.ts               # Row extraction for digital pages
+│   │   ├── extract-vision.ts        # Row extraction for scanned pages (Claude Vision)
+│   │   ├── extract-notes.ts         # Note entity extraction
+│   │   ├── map.ts
+│   │   └── explain.ts
+│   ├── mapping/
+│   │   ├── index.ts                 # runMappingEngine() orchestrator
+│   │   ├── label-normalizer.ts
+│   │   ├── dictionary.ts
+│   │   ├── disambiguator.ts
+│   │   ├── hierarchy-engine.ts
+│   │   ├── formula-validator.ts
+│   │   ├── confidence-engine.ts
+│   │   ├── scope-detector.ts        # M7: standalone vs consolidated detection
+│   │   ├── entity-linker.ts         # M9: note ↔ row bidirectional index
+│   │   ├── canonical-fields.ts
+│   │   └── template-rules/
+│   │       ├── t1-us-gaap.ts
+│   │       ├── t2-us-alt-investment.ts
+│   │       ├── t3-ind-as-nbfc.ts
+│   │       ├── t4-old-indian-gaap.ts
+│   │       ├── t5-uk-companies-act.ts
+│   │       ├── t6-uk-llp.ts
+│   │       ├── t7-uk-mortgage.ts
+│   │       └── t8-ifrs-asia.ts
+│   └── export/
+│       ├── xlsx-export.ts
+│       ├── json-export.ts
+│       └── fx-rates.ts
+├── components/
+│   ├── shared/
+│   │   ├── TemplateBadge.tsx
+│   │   ├── StatusBadge.tsx
+│   │   ├── HealthBar.tsx
+│   │   ├── ConfidenceBar.tsx
+│   │   └── StatCard.tsx
+│   └── review/
+│       ├── PdfViewer.tsx
+│       ├── MappingTable.tsx
+│       └── MappingExplainer.tsx
+├── scripts/
+│   ├── seed-demo-docs.ts
+│   ├── seed-canonical-fields.ts
+│   └── seed-mapping-rules.ts
+├── middleware.ts
+├── drizzle.config.ts
+├── next.config.ts
+└── .env.local</code></pre>
+</div>
+
+<!-- SECTION 6: SCREENS -->
+<div class="section" id="screens">
+  <div class="section-label">Section 08</div>
+  <h2>Frontend Screen Specifications</h2>
+  <p>Six screens for the demo build (Batch Import is deferred to production). Seven screens total in the full production design. All share a common shell: a <strong>200px dark sidebar</strong> (<code>#0f1117</code>) on the left with grouped navigation and a user avatar footer, and a <strong>main area</strong> on the right with a 48px topbar and scrollable content below. The active nav item is highlighted with a white-tinted background and full-brightness text; all other items are 45% opacity.</p>
+
+  <h3>Global Shell — All Screens</h3>
+  <table class="schema-table">
+    <thead><tr><th>Zone</th><th>Width / Height</th><th>Background</th><th>Contents</th></tr></thead>
+    <tbody>
+      <tr><td>Sidebar</td><td>200px fixed, full viewport height</td><td><code>#0f1117</code></td><td>Logo block (14px bold white), grouped nav items with 6px colored dot + label + optional count badge, user avatar footer (24px avatar, name, role)</td></tr>
+      <tr><td>Topbar</td><td>100% width, 48px fixed height</td><td><code>background-primary</code> (white)</td><td>Page title (13px 500 weight) left, primary action buttons right. Separated from content by 0.5px border.</td></tr>
+      <tr><td>Content area</td><td>Fills remaining space, scrollable</td><td><code>background-tertiary</code> (off-white)</td><td>14px padding on all sides. Each screen uses this area differently — see per-screen spec below.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Sidebar Navigation Groups</h3>
+  <table class="schema-table">
+    <thead><tr><th>Group label</th><th>Nav items</th><th>Dot colour</th></tr></thead>
+    <tbody>
+      <tr><td>Ingestion</td><td>Upload · Batch Import (count badge)</td><td>Blue · Purple</td></tr>
+      <tr><td>Review</td><td>Documents (count) · Workbench (count) · Statement Tree · Validation (count)</td><td>Green · Amber · Teal · Red</td></tr>
+      <tr><td>Output</td><td>Export Centre · Settings</td><td>Light green · Slate</td></tr>
+    </tbody>
+  </table>
+
+  <hr>
+
+  <div class="screens">
+
+    <div class="screen-row">
+      <div class="screen-name">/documents</div>
+      <div class="screen-desc">
+        <strong>Document Library.</strong>
+        Layout: 4-column stat cards row at top (total docs, fully processed, awaiting review, validation failures) each in a <code>background-secondary</code> surface card with a large number and muted sub-label. Below: a single full-width table card.
+        Table columns: Company (name + sub-label entity type) · Year · Template badge (T1–T8 colour-coded) · Status badge · Health bar (52px coloured progress bar) · Review (flagged row count or "All passed") · Exported (format badges if exported, dash if not) · Action link (Review / Export / Fix).
+        Filter pills above table: All · Needs review · Errors · Exported.
+        Topbar actions: + Upload PDF (ghost) · Batch Import (ghost) · Export Centre (primary blue).
+      </div>
+    </div>
+
+    <div class="screen-row">
+      <div class="screen-name">/upload</div>
+      <div class="screen-desc">
+        <strong>Upload &amp; Classify.</strong>
+        Layout: Two-column grid (1fr 1fr). Left column stacks two cards. Right column is a single card.
+        Left top — Drop zone: dashed 2px border, centred icon, title, sub-label, primary "Choose file" button. Hover state changes border to blue, background to <code>background-info</code> tint.
+        Left bottom — Classification result card (visible after upload): confidence ring (40px circle, green border, % inside), template name + type sub-label. Then key-value rows: Document (monospace filename) · Currency · Unit scale · Statements found (blue badges) · Page count · OCR required (green "No — text PDF" or amber "Yes") · Signals matched (small text). Full-width "Start extraction" primary button at bottom.
+        Right — Recent uploads list: each item has a 28px icon square (green ✓, amber ~, red !, purple ?, teal ✓), filename + meta line, optional progress bar (3px, blue fill), status badge right-aligned.
+        Topbar actions: same as Documents screen.
+      </div>
+    </div>
+
+    <div class="screen-row">
+      <div class="screen-name">/batch</div>
+      <div class="screen-desc">
+        <strong>Batch Import.</strong>
+        Layout: Full-width drop zone at top (dashed border, title, sub-label, two buttons side-by-side: "Upload ZIP" primary + "Upload CSV manifest" ghost). Below: single table card.
+        Drop zone sub-label: "ZIP: folder of PDFs · CSV columns: company, year, file_path, template_hint".
+        Table card header: "Active batches" title + concurrency indicator right ("Concurrency: 14 / 20 jobs running · Redis semaphore").
+        Each batch row: coloured dot (amber=in progress, blue=queued, green=complete) · batch name + sub-label · progress bar (80px wide) + percentage badge right.
+        Card footer: explanatory text left, "Bulk Export →" primary button right.
+        Topbar action: "Download CSV template" ghost only.
+      </div>
+    </div>
+
+    <div class="screen-row">
+      <div class="screen-name">/review/[id]</div>
+      <div class="screen-desc">
+        <strong>Analyst Review Workbench.</strong>
+        Layout: Sub-header row with document name + template/currency meta, then bulk action buttons right (Approve all ≥90% ghost · Tree view ghost · Submit review primary). Below: horizontal split layout filling remaining height.
+        Left pane — PDF Viewer (240px fixed width, full height card): toolbar with page indicator + prev/next arrows. PDF rendered in a grey container with white inner page. Current row highlighted in amber (<code>rgba(251,191,36,.35)</code>). Footer shows "Highlighted: row N" and zoom level.
+        Right pane — Mapping table (flex 1): filter pills row (All rows · Flagged · Auto-approved) + row count label right. Full-height scrollable table card.
+        Table columns: Raw label (monospace, 110px max, truncated) · Canonical field (font-weight 500 primary, or editable select on flagged rows with amber border) · 2023 value (monospace) · 2022 value (monospace, tertiary) · Confidence (32px bar + %) · Validation icon (✓ green / ~ amber / ✗ red) · Action link (Edit or Explain).
+        Flagged rows: amber <code>#fffbeb</code> background. Canonical field shown as a dropdown pre-selected to the current mapping.
+        Topbar sub-label shows: document name · statement type · page number.
+      </div>
+    </div>
+
+    <div class="screen-row">
+      <div class="screen-name">/review/[id]/tree</div>
+      <div class="screen-desc">
+        <strong>Statement Tree View.</strong>
+        Layout: Sub-header with document name + legend dots (Approved · Needs review · Failed) + "Open workbench" button right. Then 4 accordion sections stacked vertically.
+        Each accordion header: collapse arrow + section title + status badge cluster (e.g. "15 approved" green · "8 review" amber). Clicking expands a body table.
+        Tree body table columns: Section (90px, tertiary text, indented for children) · Canonical field (flex 1, font-weight 500 on subtotals) · Source label (130px, tertiary) · Current year value (70px monospace right-aligned, red for negatives) · Prior year value (70px, tertiary) · Status dot (7px circle, green/amber/red).
+        Subtotal rows: <code>background-secondary</code> fill, top border, bold canonical field.
+        Child rows are indented 14px in the Section column.
+        Balance Sheet, Cash Flow, Equity sections shown collapsed by default.
+      </div>
+    </div>
+
+    <div class="screen-row">
+      <div class="screen-name">/validation/[id]</div>
+      <div class="screen-desc">
+        <strong>Validation Dashboard.</strong>
+        Layout: Health gauge row at top (large coloured number e.g. "8 / 11", horizontal 200px progress bar, document name + currency label). Below: 3-column card grid for V01–V12 checks.
+        Health gauge: full-width <code>background-secondary</code> bar, 26px bold number coloured red/amber/green by score, flex row layout.
+        Validation check cards: 0.5px border, 8px radius. Passing cards have a 3px green left border (border-radius overridden to 0 7px 7px 0). Failing cards have 3px red left border. Card contents: monospace check ID (e.g. V02) + check name (11.5px bold) + formula (9px monospace tertiary, line-height 1.3) + result line (10.5px bold, green or red).
+        Topbar actions: "View failing rows" ghost · "Fix &amp; re-validate" primary.
+      </div>
+    </div>
+
+    <div class="screen-row">
+      <div class="screen-name">/export/[id]</div>
+      <div class="screen-desc">
+        <strong>Export Centre.</strong>
+        Layout: Sub-header with document name + "Signed URLs expire in 7 days" note right. Then tier selector. Then 3-column export format grid. Then bulk export panel below.
+        Tier selector: pill group of 3 buttons (Raw extraction · Canonical mapped · Reviewed final). Active tier uses blue fill; others are ghost. Applies to all downloads.
+        Export format cards (6 total in 3-col grid): each has a header row with a 32px coloured icon square (JSON red · JSON blue · JSON green · CSV amber · XLSX green · PDF purple) + title + sub-label. Body has description text, optional column pills (monospace 9.5px on secondary bg), file size + expiry meta row, generated timestamp + action buttons row (↻ regen ghost + ↓ format primary or ghost).
+        Reviewed final JSON card has a 2px info-colour border (recommended accent) and a small "Recommended" pill above the title.
+        XLSX card shows 8 sheet tab pills (Summary tab in blue, rest in secondary bg).
+        CSV card lists all 19 column names as small monospace pills.
+        Bulk export panel: full-width card at bottom. Header row with title + sub-label + "Manage batches" ghost + "↓ Bulk CSV" primary + "↓ Bulk XLSX" primary. Column pills for the 6 bulk-only columns. Footer line with FX rates used for each currency in the dataset.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- SECTION 12: CLAUDE CODE HANDOFF GUIDE -->
+<div class="section" id="layout">
+  <div class="section-label">Section 09</div>
+  <h2>Screen Layout Specifications &amp; Claude Code Handoff Guide</h2>
+  <p>This section explains exactly what to give Claude Code, in what order, and how to phrase each prompt to build the frontend from this design document and the mockup reference.</p>
+
+  <hr>
+
+  <h3>Design Token Reference (CSS Variables)</h3>
+  <p>Claude Code should implement the following design tokens in <code>app/globals.css</code> or a <code>tokens.css</code> file. These match the mockup exactly and ensure consistent rendering across all screens.</p>
+
+  <pre><code>/* globals.css — design tokens */
+:root {
+  /* Sidebar */
+  --sidebar-bg: #0f1117;
+  --sidebar-hover: rgba(255,255,255,.06);
+  --sidebar-active: rgba(255,255,255,.10);
+  --sidebar-text: rgba(255,255,255,.45);
+  --sidebar-text-active: #ffffff;
+  --sidebar-section-label: rgba(255,255,255,.28);
+  --sidebar-border: rgba(255,255,255,.08);
+
+  /* Layout */
+  --sidebar-width: 200px;
+  --topbar-height: 48px;
+  --content-padding: 14px;
+
+  /* Typography */
+  --font-mono: 'IBM Plex Mono', 'Fira Code', monospace;
+
+  /* Template badge colours */
+  --t1-bg: #dbeafe; --t1-text: #1e40af;   /* US GAAP */
+  --t2-bg: #dbeafe; --t2-text: #1e40af;   /* US LP/LLC */
+  --t3-bg: #ede9fe; --t3-text: #4c1d95;   /* Ind AS */
+  --t4-bg: #ede9fe; --t4-text: #4c1d95;   /* Old Indian GAAP */
+  --t5-bg: #ccfbf1; --t5-text: #134e4a;   /* UK Co. Act */
+  --t6-bg: #fef3c7; --t6-text: #92400e;   /* UK LLP */
+  --t7-bg: #fce7f3; --t7-text: #9d174d;   /* UK Mortgage */
+  --t8-bg: #ccfbf1; --t8-text: #134e4a;   /* IFRS Asia */
+
+  /* Confidence bar thresholds */
+  --conf-high: #15803d;    /* ≥ 0.90 */
+  --conf-mid: #b45309;     /* 0.70–0.89 */
+  --conf-low: #b91c1c;     /* &lt; 0.70 */
+
+  /* Validation card borders */
+  --val-pass-border: #15803d;
+  --val-fail-border: #b91c1c;
+
+  /* Flagged row */
+  --flagged-row-bg: #fffbeb;
+  --flagged-border: #f59e0b;
+}
+</code></pre>
+
+  <h3>Global Shell Component — <code>app/(dashboard)/layout.tsx</code></h3>
+  <p>This is the outermost layout wrapping all 7 screens. Claude Code should build this first before any individual page.</p>
+
+  <table class="schema-table">
+    <thead><tr><th>Element</th><th>Spec</th></tr></thead>
+    <tbody>
+      <tr><td>Shell container</td><td><code>display: flex; height: 100vh; overflow: hidden</code></td></tr>
+      <tr><td>Sidebar</td><td><code>width: 200px; flex-shrink: 0; background: #0f1117; display: flex; flex-direction: column</code></td></tr>
+      <tr><td>Logo block</td><td>16px padding, bottom 0.5px border at <code>rgba(255,255,255,.08)</code>. Product name 13px 600 white. Sub-label 9px <code>rgba(255,255,255,.3)</code>.</td></tr>
+      <tr><td>Nav group label</td><td>9px 500 uppercase letter-spacing .1em, colour <code>rgba(255,255,255,.28)</code>, padding 10px 8px 4px</td></tr>
+      <tr><td>Nav item (default)</td><td>flex row, gap 7px, padding 6px 8px, border-radius 5px, colour <code>rgba(255,255,255,.45)</code>, font-size 11.5px</td></tr>
+      <tr><td>Nav item (active)</td><td>background <code>rgba(255,255,255,.10)</code>, colour #fff</td></tr>
+      <tr><td>Nav item (hover)</td><td>background <code>rgba(255,255,255,.06)</code>, colour <code>rgba(255,255,255,.8)</code></td></tr>
+      <tr><td>Count badge</td><td>margin-left auto, background <code>rgba(255,255,255,.10)</code>, colour <code>rgba(255,255,255,.50)</code>, 9px text, padding 1px 5px, border-radius 8px</td></tr>
+      <tr><td>Nav dot</td><td>6px × 6px circle, flex-shrink 0. Colours: Upload=#60a5fa, Batch=#a78bfa, Documents=#34d399, Workbench=#f59e0b, Tree=#5eead4, Validation=#f87171, Export=#86efac, Settings=#94a3b8</td></tr>
+      <tr><td>Sidebar footer</td><td>padding 8px 5px, top border 0.5px <code>rgba(255,255,255,.08)</code>, margin-top auto. Contains user avatar (22px circle #1d4ed8, initials 9px white) + name 11px + role 9px</td></tr>
+      <tr><td>Main area</td><td><code>flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--color-background-tertiary)</code></td></tr>
+      <tr><td>Topbar</td><td><code>height: 48px; padding: 0 16px; background: var(--color-background-primary); border-bottom: 0.5px solid var(--color-border-tertiary); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0</code></td></tr>
+      <tr><td>Page title</td><td>13px font-weight 500 <code>color-text-primary</code>. Sub-label (optional) 10.5px <code>color-text-tertiary</code> after " · " separator</td></tr>
+      <tr><td>Content area</td><td><code>flex: 1; overflow-y: auto; padding: 14px</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Shared Component Specs</h3>
+  <table class="schema-table">
+    <thead><tr><th>Component</th><th>File</th><th>Spec</th></tr></thead>
+    <tbody>
+      <tr><td>Stat card</td><td><code>components/ui/StatCard.tsx</code></td><td>background: secondary, border-radius 7px, padding 11px 13px. Label 9.5px uppercase tertiary. Number 19px 500 primary (coloured when non-zero alert). Sub-label 10px tertiary.</td></tr>
+      <tr><td>Template badge</td><td><code>components/ui/TemplateBadge.tsx</code></td><td>Uses T1–T8 colour map from tokens. 10px font, 20px border-radius pill, padding 2px 7px. Accepts <code>templateType: string</code> prop.</td></tr>
+      <tr><td>Status badge</td><td><code>components/ui/StatusBadge.tsx</code></td><td>Approved=green · Needs review=amber · Val. error=red · Extracting/Queued=gray · Processing=blue. Same pill style as template badge.</td></tr>
+      <tr><td>Health bar</td><td><code>components/ui/HealthBar.tsx</code></td><td>52px wide, 4px tall, border-radius 2px. Background: border-tertiary. Fill colour driven by value: ≥90%=green, 60–89%=amber, &lt;60%=red.</td></tr>
+      <tr><td>Confidence bar</td><td><code>components/ui/ConfidenceBar.tsx</code></td><td>32px wide, 3px tall inline. Colour: ≥90%=<code>--conf-high</code>, 70–89%=<code>--conf-mid</code>, &lt;70%=<code>--conf-low</code>. Displayed inline with % text in matching colour.</td></tr>
+      <tr><td>Filter pills</td><td>Inline in each page</td><td>padding 3px 9px, border-radius 20px, 10.5px 500. Default: 0.5px border-secondary, text-secondary, bg-primary. Active: bg #1d4ed8, text white, border #1d4ed8.</td></tr>
+      <tr><td>Primary button</td><td>shadcn/ui Button variant="default"</td><td>bg #1d4ed8, text white, border-none, 11px 500. Hover: bg #1e40af.</td></tr>
+      <tr><td>Ghost button</td><td>shadcn/ui Button variant="outline"</td><td>bg transparent, 0.5px border-secondary, text-secondary, 11px 500.</td></tr>
+      <tr><td>Table card</td><td>Wrapper pattern</td><td>bg-primary, 0.5px border-tertiary, border-radius 8px, overflow hidden. Header: flex row, padding 9px 13px, border-bottom 0.5px. <code>th</code>: 9.5px uppercase tertiary, bg-secondary. <code>td</code>: 11.5px secondary, 8px padding, border-bottom 0.5px. Last row: no border. Hover: bg-secondary.</td></tr>
+      <tr><td>Column pill</td><td>Export centre only</td><td>font-family monospace, 9.5px, padding 2px 6px, border-radius 3px, bg-secondary, text-tertiary. Used to display CSV column names.</td></tr>
+    </tbody>
+  </table>
+
+  <hr>
+
+  <h3>How to Pass the Mockup to Claude Code</h3>
+
+  <div class="callout green">
+    <strong>The fastest method:</strong> Copy this entire design document HTML file into your project repo as <code>docs/design-reference.html</code>, then reference it in your Claude Code prompts by path. Claude Code can read files in your project directly — you don't need to paste HTML into the chat.
+  </div>
+
+  <h4>Step-by-step handoff process</h4>
+  <ol style="font-size:14px;color:var(--ink2);line-height:2">
+    <li>Open your scaffolded Next.js project in Claude Code (run <code>claude</code> in the project terminal).</li>
+    <li>Copy <code>FinancialSpreadX_Design_FINAL.html</code> into your project at <code>docs/design-reference.html</code>.</li>
+    <li>Use the Phase 6 prompts from Section 11 as your Claude Code prompts — they already reference the design document sections by name.</li>
+    <li>For each screen, use the prompt template below.</li>
+  </ol>
+
+  <h4>Prompt template — global shell (run first)</h4>
+  <pre><code>Read docs/design-reference.html Section 6 (Frontend Screen Specifications) and Section 08 (Screen Layout Specifications).
+
+Build app/(dashboard)/layout.tsx implementing the global shell exactly as specified:
+- 200px dark sidebar (#0f1117) with logo, grouped nav items (dot + label + optional count badge),
+  and user avatar footer
+- Nav groups: Ingestion (Upload, Batch Import), Review (Documents, Workbench, Statement Tree,
+  Validation), Output (Export Centre, Settings)
+- Nav dot colours as specified in Section 08 design tokens
+- 48px topbar with page title + action buttons
+- Content area: flex 1, overflow-y auto, 14px padding, background-tertiary
+- Show hardcoded user initials (e.g. "AS") in sidebar footer — no Clerk in demo
+- Use Next.js &lt;Link&gt; for nav items, highlight active route with usePathname()
+- Use shadcn/ui for button primitives</code></pre>
+
+  <h4>Prompt template — individual screen</h4>
+  <pre><code>Read docs/design-reference.html Section 6 screen spec for [SCREEN NAME] and the
+corresponding mockup layout in Section 08.
+
+Build app/(dashboard)/[ROUTE]/page.tsx:
+[paste the screen-desc paragraph from Section 6 verbatim here]
+
+Components needed:
+- [list from shared component table above]
+- Use React Query (useQuery) to fetch data from /api/[endpoint]
+- Use TanStack Table for any data tables
+- All colours from the design tokens in globals.css</code></pre>
+
+  <h4>Recommended build order (see Section 12 for full prompts)</h4>
+  <table class="schema-table">
+    <thead><tr><th>Session</th><th>What to build</th><th>Design reference</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Scaffold + middleware + shell layout</td><td>Sections 06, 08, 09</td></tr>
+      <tr><td>2</td><td>Database schema, queries, seed scripts</td><td>Section 05</td></tr>
+      <tr><td>3</td><td>Full mapping engine (6 modules + 8 template rules)</td><td>Section 04</td></tr>
+      <tr><td>4</td><td>Claude AI modules + synchronous pipeline + API routes</td><td>Sections 03, 04</td></tr>
+      <tr><td>5</td><td>All 6 frontend screens</td><td>Sections 07, 08</td></tr>
+      <tr><td>6</td><td>Export service + seed script + deploy</td><td>Sections 01, 10</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Three ways to reference the mockup in Claude Code</h4>
+  <table class="schema-table">
+    <thead><tr><th>Method</th><th>How</th><th>Best for</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>File reference</strong> (recommended)</td>
+        <td>Place <code>docs/design-reference.html</code> in the repo root. In your prompt say: <em>"Read docs/design-reference.html Section 6 and Section 08 before building this component."</em></td>
+        <td>Full builds — Claude Code reads the complete spec without you pasting anything</td>
+      </tr>
+      <tr>
+        <td><strong>Paste the screen spec</strong></td>
+        <td>Copy the screen-desc paragraph for the screen you're building and paste it directly into the Claude Code prompt</td>
+        <td>Quick targeted fixes or single-component builds</td>
+      </tr>
+      <tr>
+        <td><strong>Screenshot reference</strong></td>
+        <td>Take a screenshot of the mockup widget from the chat, save as <code>docs/mockup-[screen].png</code>, then in Claude Code: <em>"Implement this screen to match the attached screenshot."</em></td>
+        <td>When visual fidelity is the priority and you want Claude Code to infer layout from the image</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout amber">
+    <strong>One session = one screen.</strong> Do not ask Claude Code to build multiple screens in a single session. Each screen should be its own focused session with a clear reference to this design document. This keeps the context window clean and produces higher-quality output with fewer corrections.
+  </div>
+
+  <div class="callout">
+    <strong>After each screen:</strong> Ask Claude Code to run <code>npm run build</code> and check for TypeScript errors before moving to the next screen. Fix all type errors in the same session — carrying them forward compounds quickly.
+  </div>
+
+  <hr>
+
+  <p style="font-size: 13px; color: var(--ink3); text-align: center; margin: 0;">
+    Financial SpreadX &middot; Design Specification v2.1 Demo Edition &middot; 6 screens (demo) &middot; Claude Code Handoff Ready
+  </p>
+
+
+<div class="section" id="stack">
+  <div class="section-label">Section 10</div>
+  <h2>Technology Stack</h2>
+
+  <h3>Install commands</h3>
+  <pre><code>npx create-next-app@latest financial-spreadx --typescript --tailwind --app --src-dir=false --import-alias="@/*"
+
+npm install drizzle-orm @neondatabase/serverless ai @ai-sdk/anthropic @anthropic-ai/sdk @vercel/blob zod exceljs pdf-parse pdfjs-dist @napi-rs/canvas react-pdf date-fns
+
+npm install -D drizzle-kit dotenv-cli tsx @types/node
+
+npx shadcn@latest init
+npx shadcn@latest add button input select badge table card</code></pre>
+
+  <div class="stack-grid">
+    <div class="stack-col">
+      <h4>Framework</h4>
+      <ul>
+        <li>Next.js 14 <span>App Router</span></li>
+        <li>TypeScript <span>strict</span></li>
+        <li>Tailwind CSS <span>v3</span></li>
+        <li>shadcn/ui <span>components</span></li>
+        <li>@tanstack/react-table <span>workbench</span></li>
+      </ul>
+    </div>
+    <div class="stack-col">
+      <h4>Data</h4>
+      <ul>
+        <li>Drizzle ORM <span>queries</span></li>
+        <li>@neondatabase/serverless <span>driver</span></li>
+        <li>@vercel/blob <span>file storage</span></li>
+        <li>drizzle-kit <span>migrations</span></li>
+      </ul>
+    </div>
+    <div class="stack-col">
+      <h4>AI + Processing</h4>
+      <ul>
+        <li>ai <span>Vercel AI SDK</span></li>
+        <li>@ai-sdk/anthropic <span>claude-sonnet-4-5</span></li>
+        <li>pdf-parse <span>text extraction</span></li>
+        <li>zod <span>schema validation</span></li>
+      </ul>
+    </div>
+    <div class="stack-col">
+      <h4>Frontend + Export</h4>
+      <ul>
+        <li>react-pdf <span>PDF viewer</span></li>
+        <li>exceljs <span>XLSX workbook</span></li>
+        <li>date-fns <span>dates</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>next.config.ts</h3>
+  <pre><code>import type { NextConfig } from 'next';
+const nextConfig: NextConfig = {
+  serverExternalPackages: ['pdf-parse', 'pdfjs-dist', '@napi-rs/canvas'],
+  experimental: {
+    serverActions: { bodySizeLimit: '52mb' },
+  },
+};
+export default nextConfig;</code></pre>
+
+  <h3>drizzle.config.ts</h3>
+  <pre><code>import { defineConfig } from 'drizzle-kit';
+export default defineConfig({
+  schema: './lib/db/schema.ts',
+  out: './drizzle',
+  dialect: 'postgresql',
+  dbCredentials: { url: process.env.DATABASE_URL_UNPOOLED! },
+});</code></pre>
+
+  <h3>vercel.json</h3>
+  <pre><code>{
+  "functions": {
+    "app/api/documents/route.ts": { "maxDuration": 300 }
+  }
+}</code></pre>
+</div>
+
+<div class="section" id="exports">
+  <div class="section-label">Section 11</div>
+  <h2>Export Specifications — XLSX + JSON Only</h2>
+  <p>Two formats in the demo. Both generated on-demand, uploaded to Vercel Blob, returned as a 7-day signed URL.</p>
+
+  <h3>XLSX Workbook — 8 Tabs</h3>
+  <table class="schema-table">
+    <thead><tr><th>Sheet</th><th>Contents</th><th>Key formatting</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Summary</strong></td><td>Document metadata, classification result, extraction stats, V01–V12 scorecard table</td><td>Key-value layout. Green/red fill on validation rows.</td></tr>
+      <tr><td><strong>Income Statement</strong></td><td>canonical_field, display_name, value (current year), value (prior year), value_usd_thousands, mapping_confidence, review_status</td><td>Frozen row 1. Auto-filter. <code>#,##0;[Red](#,##0)</code>. Amber fill for confidence &lt;0.8. Bold + top border for subtotals.</td></tr>
+      <tr><td><strong>Balance Sheet</strong></td><td>Same + asset_liability_flag (A/L/E)</td><td>Merged section headers (Assets / Liabilities / Equity). Colour bands.</td></tr>
+      <tr><td><strong>Cash Flow</strong></td><td>Same + activity_type</td><td>Three colour bands. Net movement rows bolded.</td></tr>
+      <tr><td><strong>Equity Statement</strong></td><td>Equity component movements</td><td>Omit if not in document.</td></tr>
+      <tr><td><strong>Validation</strong></td><td>V01–V12: check_id, formula, lhs, rhs, diff_pct, status</td><td>Pass=green fill. Fail=red fill. Skip=gray.</td></tr>
+      <tr><td><strong>Raw Extraction</strong></td><td>Verbatim rows: raw_label, raw_values, page_number, note_ref</td><td>Plain table. Audit trail.</td></tr>
+      <tr><td><strong>Metadata</strong></td><td>document_id, template, classification_confidence, signals_matched, FX rates, timestamps</td><td>Key-value. No filters.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>FX Rates (hardcoded fallback for 19 demo documents)</h3>
+  <pre><code>// lib/export/fx-rates.ts
+export const DEMO_FX_RATES: Record<string, number> = {
+  GBP: 1.2653,   // 2023-12-31
+  INR: 0.01203,  // 2023-03-31 (NBFC fiscal year)
+  RMB: 0.14062,  // 2024-12-31
+  NTD: 0.03182,  // 2017-12-31
+  HKD: 0.12796,  // 2024-12-31
+  USD: 1.00000,
+};</code></pre>
+
+  <h3>Reviewed Final JSON Structure</h3>
+  <pre><code>{
+  "document": {
+    "document_id": "uuid",
+    "company_name": "Orient Securities (DFZQ)",
+    "report_years": [2024, 2023],
+    "template_type": "T8",
+    "currency_code": "RMB",
+    "unit_scale": "thousands",
+    "fx_rates": { "RMB_USD": 0.14062, "rate_date": "2024-12-31" },
+    "export_tier": "reviewed",
+    "exported_at": "2025-03-30T14:25:00Z"
+  },
+  "statements": {
+    "income_statement": {
+      "period": "year_ended_2024-12-31",
+      "rows": [
+        {
+          "canonical_field": "commission_income",
+          "display_name": "Commission and Fee Income",
+          "raw_label": "Commission and fee income",
+          "section_path": ["revenue"],
+          "is_subtotal": false,
+          "values": { "2024": 9988145, "2023": 10298336 },
+          "values_usd_thousands": { "2024": 1404150, "2023": 1448021 },
+          "mapping_confidence": 0.97,
+          "review_status": "auto_approved"
+        }
+      ],
+      "validation": {
+        "V02": { "status": "passed", "lhs": 3659254, "rhs": 3659254 }
+      }
+    }
+  }
+}</code></pre>
+
+  <h3>Export API routes</h3>
+  <pre><code>// app/api/export/[id]/xlsx/route.ts
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+  const [doc, rows] = await Promise.all([
+    getDocumentById(params.id),
+    getMappedRowsByDocument(params.id, 'reviewed'),
+  ]);
+  const buffer = await generateXlsx(doc, rows);
+  const blob = await put(`exports/${params.id}-reviewed.xlsx`, buffer, { access: 'private' });
+  return NextResponse.json({ url: blob.url, expiresAt: new Date(Date.now() + 7*24*60*60*1000) });
+}</code></pre>
+</div>
+
+<div class="section" id="todo">
+  <div class="section-label">Section 12</div>
+  <h2>Development Todo List — 63 Checkpoints</h2>
+  <p>Ordered by dependency. Complete each phase before the next. Phases 0–7, covering all 6 screens, full mapping engine, export service, seed script, and deployment. Estimated: <strong>3–4 weeks</strong>.</p>
+
+  <h3>Phase 0 — Project Initialization (manual, run in terminal)</h3>
+  <table class="field-map-table">
+    <thead><tr><th style="width:3rem">#</th><th>Task</th><th>Command / action</th><th style="width:4rem">Done?</th></tr></thead>
+    <tbody>
+      <tr><td>0.1</td><td>Create Next.js project</td><td><code>npx create-next-app@latest financial-spreadx --typescript --tailwind --app --src-dir=false</code></td><td>☐</td></tr>
+      <tr><td>0.2</td><td>Install runtime deps</td><td>See Section 09 install command</td><td>☐</td></tr>
+      <tr><td>0.3</td><td>Install dev deps</td><td><code>npm install -D drizzle-kit dotenv-cli tsx</code></td><td>☐</td></tr>
+      <tr><td>0.4</td><td>Create Neon Postgres database</td><td>neon.tech → New project → copy DATABASE_URL and DATABASE_URL_UNPOOLED</td><td>☐</td></tr>
+      <tr><td>0.5</td><td>Connect Neon to Vercel</td><td>Vercel → Storage → Connect Neon → env vars auto-injected</td><td>☐</td></tr>
+      <tr><td>0.6</td><td>Set up Vercel Blob</td><td>Vercel → Storage → Create Blob store → copy BLOB_READ_WRITE_TOKEN</td><td>☐</td></tr>
+      <tr><td>0.7</td><td>Create .env.local</td><td>6 variables from Section 01</td><td>☐</td></tr>
+      <tr><td>0.8</td><td>Configure next.config.ts + drizzle.config.ts</td><td>Use code from Section 09</td><td>☐</td></tr>
+      <tr><td>0.9</td><td>Init shadcn/ui</td><td><code>npx shadcn@latest init</code> then add button, input, select, badge, table, card</td><td>☐</td></tr>
+      <tr><td>0.10</td><td>Place 19 PDFs in /demo-docs/</td><td>Copy uploaded files to project root /demo-docs/ folder with exact filenames from Section 01</td><td>☐</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Phase 1 — Data Layer</h3>
+  <table class="field-map-table">
+    <thead><tr><th style="width:3rem">#</th><th>File</th><th>Task (pass to Claude Code with "Read Section 05")</th><th style="width:4rem">Done?</th></tr></thead>
+    <tbody>
+      <tr><td>1.1</td><td><code>lib/db/schema.ts</code></td><td>6 tables + documentStatusEnum + 4 indexes per Section 05 column specs</td><td>☐</td></tr>
+      <tr><td>1.2</td><td><code>lib/db/index.ts</code></td><td>Neon serverless client, neonConfig.fetchConnectionCache = true, export db</td><td>☐</td></tr>
+      <tr><td>1.3</td><td>Migration</td><td>Run <code>npx drizzle-kit generate && npx drizzle-kit migrate</code></td><td>☐</td></tr>
+      <tr><td>1.4</td><td><code>lib/db/queries/documents.ts</code></td><td>getDocumentById, listDocuments (paginated + filtered), createDocument, updateDocumentStatus, updateDocumentTemplate, updateDocumentValidation</td><td>☐</td></tr>
+      <tr><td>1.5</td><td><code>lib/db/queries/extracted-rows.ts</code></td><td>insertExtractedRows (batch), getRowsByDocument (filterable by statement_type)</td><td>☐</td></tr>
+      <tr><td>1.6</td><td><code>lib/db/queries/mapped-rows.ts</code></td><td>insertMappedRows (batch), getMappedRowsByDocument (filterable), updateMappedRowReviewStatus, bulkApproveAboveThreshold</td><td>☐</td></tr>
+      <tr><td>1.7</td><td><code>lib/db/queries/review-overrides.ts</code></td><td>insertReviewOverride, getOverridesByDocument</td><td>☐</td></tr>
+      <tr><td>1.8</td><td><code>lib/mapping/canonical-fields.ts</code></td><td>40+ canonical fields with: field_name, display_name, statement_type, field_group, parent_field, formula_rule, supported_templates[]</td><td>☐</td></tr>
+      <tr><td>1.9</td><td><code>scripts/seed-canonical-fields.ts</code></td><td>Insert all fields from canonical-fields.ts into canonical_fields table. Run it.</td><td>☐</td></tr>
+      <tr><td>1.10</td><td><code>scripts/seed-mapping-rules.ts</code></td><td>60+ rules covering common label variants across all 8 template families. Run it.</td><td>☐</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Phase 2 — Mapping Engine (all 8 tasks required)</h3>
+  <table class="field-map-table">
+    <thead><tr><th style="width:3rem">#</th><th>File</th><th>Task (pass to Claude Code with "Read Section 04")</th><th style="width:4rem">Done?</th></tr></thead>
+    <tbody>
+      <tr><td>2.1</td><td><code>lib/mapping/label-normalizer.ts</code></td><td>normalizeLabel() per M1 spec in Section 04</td><td>☐</td></tr>
+      <tr><td>2.2</td><td><code>lib/mapping/dictionary.ts</code></td><td>lookupCanonicalField(normalizedLabel, templateType) per M2</td><td>☐</td></tr>
+      <tr><td>2.3</td><td><code>lib/mapping/disambiguator.ts</code></td><td>disambiguate(label, context) per M3 — all 4 rules required</td><td>☐</td></tr>
+      <tr><td>2.4</td><td><code>lib/mapping/hierarchy-engine.ts</code></td><td>buildStatementTree() + inferMissingSubtotals() per M4</td><td>☐</td></tr>
+      <tr><td>2.5</td><td><code>lib/mapping/formula-validator.ts</code></td><td>All 12 checks V01–V12 per M5 table. 0.5% tolerance. Export runAllValidations().</td><td>☐</td></tr>
+      <tr><td>2.6</td><td><code>lib/mapping/confidence-engine.ts</code></td><td>computeConfidence() per M6. Weights 50/20/20/10. Thresholds 0.95/0.80.</td><td>☐</td></tr>
+      <tr><td>2.7</td><td><code>lib/mapping/index.ts</code></td><td>runMappingEngine(rows, templateType, documentId) orchestrating M1→M6</td><td>☐</td></tr>
+      <tr><td>2.8–2.15</td><td>All 8 template rule files</td><td>t1-us-gaap.ts through t8-ifrs-asia.ts per template rules table in Section 04</td><td>☐</td></tr>
+    </tbody>
+  </table>
+
+    <h3>Phase 2b &mdash; PDF Processing &amp; Additional Requirement Modules</h3>
+  <table class="field-map-table">
+    <thead><tr><th style="width:3rem">#</th><th>File</th><th>Task (reference Section 03)</th><th style="width:4rem">Done?</th></tr></thead>
+    <tbody>
+      <tr><td>2b.1</td><td><code>lib/pdf/page-classifier.ts</code></td><td>Implement classifyPdfPages(buffer) returning ClassifiedPage[]. Per-page word count + ASCII ratio &mdash; classify as digital (&ge;80 words, &ge;90% ASCII) / hybrid (20&ndash;79 words) / scanned (&lt;20 words). Uses pdf-parse pagerender callback. See Req A spec in Section 03.</td><td>☐</td></tr>
+      <tr><td>2b.2</td><td><code>lib/pdf/page-filter.ts</code></td><td>Implement filterFinancialPages(classifiedPages) returning FilterResult. SECTION_PATTERNS regexes for income_statement, balance_sheet, cash_flow, equity_statement, notes. Trailing 5-page continuation window. Note page detection with notePageMap. See Req B in Section 03.</td><td>☐</td></tr>
+      <tr><td>2b.3</td><td><code>lib/pdf/column-classifier.ts</code></td><td>Implement classifyColumnHeaders(rawHeaders): ColumnMetadata[]. Classify each year column as actual / budget / forecast / restated using pattern matching. See Req C (M8) in Section 03.</td><td>☐</td></tr>
+      <tr><td>2b.4</td><td><code>lib/mapping/scope-detector.ts</code></td><td>Implement detectScope(pageText): 'standalone' | 'consolidated' | 'unknown'. Keyword patterns for &ldquo;Consolidated&rdquo;/&ldquo;Group&rdquo; vs &ldquo;Standalone&rdquo;/&ldquo;Company&rdquo; in statement headings. See M7 in Section 05.</td><td>☐</td></tr>
+      <tr><td>2b.5</td><td><code>lib/mapping/entity-linker.ts</code></td><td>Implement parseNoteNumber(noteRef) and linkNotesToRows(documentId, rows, noteEntries). Write bidirectional FK: append row UUID to note_entries.linked_row_ids array. See M9 and Req D in Section 03.</td><td>☐</td></tr>
+      <tr><td>2b.6</td><td><code>lib/db/queries/document-pages.ts</code></td><td>Write: insertPageClassifications (batch), getSelectedPageText (returns concatenated text of selected pages for a section), updatePageSection.</td><td>☐</td></tr>
+      <tr><td>2b.7</td><td><code>lib/db/queries/note-entries.ts</code></td><td>Write: insertNoteEntries (batch), getNotesByDocument, getNoteByNumber (for the note drawer API), updateNoteLinkedRows.</td><td>☐</td></tr>
+      <tr><td>2b.8</td><td>Schema migration</td><td>Add document_pages and note_entries tables + new columns (statement_scope, column_metadata on extracted_rows; statement_scopes, page_classification_summary on documents; ocr_method on document_pages) per Section 06 additions. Run: npx drizzle-kit generate &amp;&amp; npx drizzle-kit migrate.</td><td>☐</td></tr>
+      <tr><td>2b.9</td><td><code>lib/pdf/page-rasterizer.ts</code></td><td>Implement rasterizePage(pdfBuffer, pageNumber, scale=2.0) using pdfjs-dist + @napi-rs/canvas. Returns PNG Buffer. Implement rasterizePages() for batch use. See Req E spec in Section 03.</td><td>☐</td></tr>
+      <tr><td>2b.10</td><td><code>lib/claude/extract-vision.ts</code></td><td>Implement extractStatementFromImage(imageBuffer, statementType, templateType, pageNumber) using Anthropic SDK directly (not Vercel AI SDK). Send PNG as base64 image block. Return same ExtractedRow[] schema as extract.ts. See Req E spec in Section 03.</td><td>☐</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Phase 3 — Claude AI Integration</h3>
+  <table class="field-map-table">
+    <thead><tr><th style="width:3rem">#</th><th>File</th><th>Task</th><th style="width:4rem">Done?</th></tr></thead>
+    <tbody>
+      <tr><td>3.1</td><td><code>lib/claude/classify.ts</code></td><td>classifyDocument() using generateObject() + Zod schema: template_type, confidence, signals_matched, detected_currency, detected_unit_scale, statement_types_found, <strong>statement_scopes</strong> (new field)</td><td>☐</td></tr>
+      <tr><td>3.2</td><td><code>lib/claude/extract.ts</code></td><td>extractStatement(pageText, statementType, templateType) returning rows. Now also detects all year columns (not just current+prior). Returns raw_label, raw_values (all years), section_path, indentation_level, is_subtotal, note_ref</td><td>☐</td></tr>
+      <tr><td>3.2b</td><td><code>lib/claude/extract-notes.ts</code></td><td>extractNote(noteText, noteNumber, templateType) returning: note_number, note_title, summary (max 500 chars), sub_tables. Used in Stage 6 of pipeline.</td><td>☐</td></tr>
+      <tr><td>3.2c</td><td><code>lib/claude/extract-vision.ts</code></td><td>Implement extractStatementFromImage() per Req E spec in Section 03 (also covered in task 2b.10). Uses Anthropic SDK image blocks, returns same ExtractedRow[] schema. Wire into Stage 5 OCR branch in app/api/documents/route.ts.</td><td>☐</td></tr>
+      <tr><td>3.3</td><td><code>lib/claude/map.ts</code></td><td>claudeMapLabel() fallback for rows with dictionary confidence &lt;0.7</td><td>☐</td></tr>
+      <tr><td>3.4</td><td><code>lib/claude/explain.ts</code></td><td>streamMappingExplanation() using streamText() returning ReadableStream for workbench Explain button</td><td>☐</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Phase 4 — API Routes + Middleware</h3>
+  <table class="field-map-table">
+    <thead><tr><th style="width:3rem">#</th><th>Route</th><th>Task</th><th style="width:4rem">Done?</th></tr></thead>
+    <tbody>
+      <tr><td>4.1</td><td><code>middleware.ts</code></td><td>API key check from Section 01. Protect /api/ and /(dashboard)/.</td><td>☐</td></tr>
+      <tr><td>4.2</td><td><code>/api/documents</code></td><td>POST: full synchronous pipeline per Section 03. GET: paginated list with ?status= and ?template_type= filters.</td><td>☐</td></tr>
+      <tr><td>4.3</td><td><code>/api/documents/[id]</code></td><td>GET: full record with counts. DELETE: soft-delete.</td><td>☐</td></tr>
+      <tr><td>4.4</td><td><code>/api/documents/[id]/rows</code></td><td>GET paginated extracted rows. ?statement_type= filter.</td><td>☐</td></tr>
+      <tr><td>4.5</td><td><code>/api/documents/[id]/mapped</code></td><td>GET paginated mapped rows. ?review_status= and ?confidence_below= filters.</td><td>☐</td></tr>
+      <tr><td>4.6</td><td><code>/api/documents/[id]/validation</code></td><td>GET: run V01–V12, return ValidationReport.</td><td>☐</td></tr>
+      <tr><td>4.7</td><td><code>/api/review/[mappedRowId]</code></td><td>POST: accept override, write to review_overrides, update mapped_row.</td><td>☐</td></tr>
+      <tr><td>4.8</td><td><code>/api/review/[id]/explain</code></td><td>GET: call streamMappingExplanation(), return SSE stream.</td><td>☐</td></tr>
+      <tr><td>4.9</td><td><code>/api/export/[id]/xlsx</code> + <code>/json</code></td><td>Generate, upload to Blob, return signed URL. Per Section 10 code sample.</td><td>☐</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Phase 5 — Frontend (6 screens)</h3>
+  <table class="field-map-table">
+    <thead><tr><th style="width:3rem">#</th><th>File</th><th>Task (pass to Claude Code with "Read Section 07 + Section 08")</th><th style="width:4rem">Done?</th></tr></thead>
+    <tbody>
+      <tr><td>5.1</td><td><code>app/globals.css</code> + layout</td><td>Add Section 08 design tokens. Build (dashboard)/layout.tsx: 188px dark sidebar, nav groups + dots, 46px topbar, 14px content area.</td><td>☐</td></tr>
+      <tr><td>5.2</td><td>Shared components</td><td>TemplateBadge, StatusBadge, HealthBar, ConfidenceBar, StatCard per Section 08 shared component table</td><td>☐</td></tr>
+      <tr><td>5.3</td><td><code>/documents/page.tsx</code></td><td>4 stat cards + filterable TanStack table. All 19 docs. React Query polling every 5s for extracting/mapping docs.</td><td>☐</td></tr>
+      <tr><td>5.4</td><td><code>/upload/page.tsx</code></td><td>Sync banner + drop zone + pipeline steps card (animated current step) + classification result card + recent uploads list</td><td>☐</td></tr>
+      <tr><td>5.5</td><td><code>components/review/PdfViewer.tsx</code></td><td>react-pdf wrapper. Accept blobUrl + highlightedRowId. Amber highlight overlay on current row.</td><td>☐</td></tr>
+      <tr><td>5.6</td><td><code>components/review/MappingTable.tsx</code></td><td>TanStack Table. All columns per Section 07 workbench spec. Flagged row amber bg. Inline dropdown on flagged rows.</td><td>☐</td></tr>
+      <tr><td>5.7</td><td><code>components/review/MappingExplainer.tsx</code></td><td>Streaming panel. Fetch /api/review/[id]/explain and render SSE stream.</td><td>☐</td></tr>
+      <tr><td>5.7b</td><td><code>components/review/NoteDrawer.tsx</code></td><td>320px right-side drawer showing note number + title, summary text, sub-tables, and &ldquo;View in PDF&rdquo; link. Opens when user clicks &ldquo;Note N &rarr;&rdquo; link on any row with a note reference. Fetches from /api/notes/[documentId]/[noteNumber].</td><td>☐</td></tr>
+      <tr><td>5.7c</td><td><code>app/api/notes/[documentId]/[noteNumber]/route.ts</code></td><td>GET: return note_entry record (title, raw_text, extracted_subtables, pages) for the given document and note number.</td><td>☐</td></tr>
+      <tr><td>5.8</td><td><code>/review/[id]/page.tsx</code></td><td>Sub-header + split pane: PdfViewer left (238px) + MappingTable right (flex 1) + MappingExplainer below table</td><td>☐</td></tr>
+      <tr><td>5.9</td><td><code>/review/[id]/tree/page.tsx</code></td><td>4 accordion sections. Tree row layout: section / canonical_field / source_label / value / prior_year / status_dot</td><td>☐</td></tr>
+      <tr><td>5.10</td><td><code>/validation/[id]/page.tsx</code></td><td>Health gauge row + 3-column V01–V12 card grid. Pass=green left border. Fail=red left border.</td><td>☐</td></tr>
+      <tr><td>5.11</td><td><code>/export/[id]/page.tsx</code></td><td>Tier selector + 2×2 grid (XLSX active, JSON active, CSV deferred, PDF deferred) + bulk export panel</td><td>☐</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Phase 6 — Export Service</h3>
+  <table class="field-map-table">
+    <thead><tr><th style="width:3rem">#</th><th>File</th><th>Task</th><th style="width:4rem">Done?</th></tr></thead>
+    <tbody>
+      <tr><td>6.1</td><td><code>lib/export/fx-rates.ts</code></td><td>getFxRate(currency, date) fetching from openexchangerates.org with DEMO_FX_RATES fallback from Section 10</td><td>☐</td></tr>
+      <tr><td>6.2</td><td><code>lib/export/xlsx-export.ts</code></td><td>generateXlsx(doc, mappedRows) using exceljs. 8-tab workbook per Section 10 sheet specs. All formatting.</td><td>☐</td></tr>
+      <tr><td>6.3</td><td><code>lib/export/json-export.ts</code></td><td>generateReviewedJson(documentId) returning canonical JSON per Section 10 structure</td><td>☐</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Phase 7 — Seed + Verify + Deploy</h3>
+  <table class="field-map-table">
+    <thead><tr><th style="width:3rem">#</th><th>Task</th><th>Command / action</th><th style="width:4rem">Done?</th></tr></thead>
+    <tbody>
+      <tr><td>7.1</td><td>Implement seed script</td><td>Build scripts/seed-demo-docs.ts using processDocumentSynchronously() from the pipeline code in Section 03</td><td>☐</td></tr>
+      <tr><td>7.2</td><td>Run seed script</td><td><code>npx tsx scripts/seed-demo-docs.ts</code> — verify all 19 appear in /documents</td><td>☐</td></tr>
+      <tr><td>7.3</td><td>E2E check: Aspect Capital 2023</td><td>Verify: template=T5, Turnover→total_revenue at ≥95%, V02 passes, XLSX download has net_income = −14097 in Income Stmt tab</td><td>☐</td></tr>
+      <tr><td>7.4</td><td>E2E check: HDFC Credila 2023</td><td>Verify: template=T3, V01 and V05 shown as failed in Validation Dashboard</td><td>☐</td></tr>
+      <tr><td>7.5</td><td>Push to GitHub</td><td><code>git init && git add . && git commit -m "demo build" && git push -u origin main</code></td><td>☐</td></tr>
+      <tr><td>7.6</td><td>Deploy to Vercel</td><td>Vercel → Import project → add ANTHROPIC_API_KEY + DEMO_API_KEY env vars</td><td>☐</td></tr>
+      <tr><td>7.7</td><td>Production migration</td><td><code>npx drizzle-kit migrate</code> against production DATABASE_URL_UNPOOLED</td><td>☐</td></tr>
+      <tr><td>7.8</td><td>Seed production DB</td><td><code>DATABASE_URL=&lt;prod_url&gt; npx tsx scripts/seed-demo-docs.ts</code></td><td>☐</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section" id="kickoff">
+  <div class="section-label">Section 13</div>
+  <h2>Claude Code Session Prompts</h2>
+  <p>Run one session per phase. In each session, tell Claude Code to read this document first.</p>
+
+  <div class="callout green">
+    <strong>Setup:</strong> Copy this file into your project as <code>docs/demo-design.html</code>. Also copy <code>FinancialSpreadX_Demo_Mockup.html</code> as <code>docs/demo-mockup.html</code> for visual reference.
+  </div>
+
+  <h3>Session 1 — Scaffold + Middleware + Shell</h3>
+  <pre><code>Read docs/demo-design.html Sections 06, 08, and 09.
+
+Scaffold the Next.js 14 App Router project. Install all packages from
+the Section 09 install command. Run shadcn init and add the components listed.
+
+Create middleware.ts with the API key check from Section 01.
+Add design tokens from Section 08 to app/globals.css.
+Build app/(dashboard)/layout.tsx: 188px dark sidebar (#0f1117), nav groups
+with coloured dots and count badges, 46px topbar, 14px content padding.
+Exactly as specified in Section 08 shell spec.
+
+Create placeholder page.tsx files for all 6 routes:
+/upload, /documents, /review/[id], /review/[id]/tree,
+/validation/[id], /export/[id].
+
+Create next.config.ts, drizzle.config.ts, and vercel.json from Section 09.</code></pre>
+
+  <h3>Session 2 — Database Schema + Queries + Seeds</h3>
+  <pre><code>Read docs/demo-design.html Section 05 (Data Model).
+
+Create lib/db/schema.ts with all 6 tables and 4 indexes from Section 05.
+Use pgEnum for document_status. Use jsonb for validation_results and raw_values.
+Create lib/db/index.ts with Neon serverless client.
+Run: npx drizzle-kit generate && npx drizzle-kit migrate
+
+Create all 4 query files in lib/db/queries/ per Section 11 Phase 1 tasks.
+Create lib/mapping/canonical-fields.ts with 40+ fields.
+Create scripts/seed-canonical-fields.ts and scripts/seed-mapping-rules.ts
+with at least 60 rules covering all 8 template families. Run both scripts.</code></pre>
+  <h3>Session 3 — PDF Modules + Mapping Engine (9 modules + 8 template rules)</h3>
+  <pre><code>Read docs/demo-design.html Section 03 (Requirements A, B, C, D)
+and Section 05 (Mapping Engine modules M1-M9).
+
+First build lib/pdf/ modules:
+- page-classifier.ts: classifyPdfPages() - per-page digital/scanned/hybrid
+- page-filter.ts: filterFinancialPages() - section heading regex, notePageMap
+- column-classifier.ts: classifyColumnHeaders() - actual/forecast/restated (M8)
+
+Then build 6 core modules M1-M6 in lib/mapping/:
+label-normalizer.ts, dictionary.ts, disambiguator.ts (all 4 rules),
+hierarchy-engine.ts, formula-validator.ts (V01-V12, 0.5% tolerance),
+confidence-engine.ts (thresholds 0.95 and 0.80).
+
+Then build M7 and M9:
+- scope-detector.ts (M7): detectScope() standalone/consolidated detection
+- entity-linker.ts (M9): parseNoteNumber() + linkNotesToRows()
+
+Build lib/mapping/index.ts: runMappingEngine() orchestrating M1-M9.
+Build all 8 template rule files (t1 through t8) per Section 05.
+
+Also build lib/pdf/page-rasterizer.ts (pdfjs-dist + @napi-rs/canvas)
+and lib/claude/extract-vision.ts per Req E spec in Section 03.</code></pre>
+
+  Session 4 — Claude AI + Enhanced 10-Stage Pipeline + API Routes</h3>
+  <pre><code>Read docs/demo-design.html Section 04 (10-stage pipeline) and Section 03 Req C, D.
+
+Build lib/claude/classify.ts: add statement_scopes (standalone/consolidated) to schema.
+Build lib/claude/extract.ts: return all year columns + column_metadata per row.
+Build lib/claude/extract-notes.ts: extractNote() for Stage 6 (Req D).
+Build lib/claude/map.ts and lib/claude/explain.ts (unchanged).
+
+Build app/api/documents/route.ts: full 10-stage pipeline from Section 04.
+All stages required: classifyPdfPages (2), filterFinancialPages (3),
+scope/column detection (5), extractNote for referenced notes (6),
+linkNotesToRows (8).
+Build app/api/notes/[documentId]/[noteNumber]/route.ts for note drawer.
+Build all other API routes from Section 12 Phase 4.</code></pre>
+
+  <h3>Session 5 — Frontend Screens (scope + notes enhanced)</h3>
+  <pre><code>Read docs/demo-design.html Section 08 (Screen Specifications).
+Open docs/demo-mockup.html as visual reference.
+
+Build shared components: TemplateBadge, StatusBadge, HealthBar, ConfidenceBar, StatCard.
+
+Build components/review/NoteDrawer.tsx: 320px drawer, note title + summary +
+sub-tables + View in PDF. Fetches /api/notes/[documentId]/[noteNumber].
+
+Build 6 screens following Section 08:
+/documents, /upload (10-stage pipeline step card),
+/review/[id] (scope badge + column type badges + Note N link + NoteDrawer),
+/review/[id]/tree (all year columns + Notes Index 5th accordion),
+/validation/[id], /export/[id].</code></pre>
+
+  <h3>Session 6 — Export Service + Seed Script + Deploy</h3>
+  <pre><code>Read docs/demo-design.html Section 10 (Export Specifications).
+
+Build lib/export/fx-rates.ts with DEMO_FX_RATES fallback from Section 10.
+Build lib/export/xlsx-export.ts using exceljs — 8 tabs with all formatting
+from the Section 10 sheet specs table.
+Build lib/export/json-export.ts generating the canonical reviewed JSON
+structure from Section 10.
+
+Build scripts/seed-demo-docs.ts using the 19-document list from Section 01.
+Run: npx tsx scripts/seed-demo-docs.ts
+Verify all 19 documents appear in /documents page with correct templates.
+
+Deploy to Vercel (Section 11 Phase 7 tasks 7.5–7.8).</code></pre>
+
+  <hr>
+  <p style="font-size: 13px; color: var(--ink3); text-align: center; margin: 0;">
+    Financial SpreadX &middot; Demo Design Specification v1.1 &middot; 13 sections &middot; 77 checkpoints &middot; 6 screens &middot; 19 documents
+  </p>
+</div>
+
+</body>
+</html>
