@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
           if (probeRows.length > 0) {
             visionChunks.push(probeRows.map((r) => r.raw_label).join('\n'));
           }
-        } catch { /* skip page on error */ }
+        } catch (e) { console.error(`[Stage4 probe] page ${pageNum}:`, e); }
       }
       visionSampleText = visionChunks.join('\n\n').slice(0, 6000);
     }
@@ -189,7 +189,7 @@ export async function POST(request: NextRequest) {
             rowsToInsert.push(...bestRows.filter((r) => r.rawLabel.trim()));
             ocrPageNums.add(pageNum);
           }
-        } catch { /* skip page */ }
+        } catch (e) { console.error(`[Stage5 fallback] page ${pageNum}:`, e); }
       }
     }
 

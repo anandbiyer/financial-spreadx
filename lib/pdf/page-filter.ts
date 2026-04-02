@@ -24,25 +24,31 @@ export interface FilterResult {
  */
 export const SECTION_PATTERNS: Record<PageSection, RegExp[]> = {
   income_statement: [
-    /statement\s+of\s+(profit|income|operations|comprehensive\s+income)/i,
-    /consolidated\s+(statement\s+of\s+)?(profit|income)/i,
+    /statement\s+of\s+(profit|income|operations|comprehensive\s+income|activities)/i,
+    /consolidated\s+(statement\s+of\s+)?(profit|income|operations)/i,
     /profit\s+(and|&)\s+loss\s+(account|statement)/i,
     /income\s+statement/i,
+    /statements?\s+of\s+operations/i,
+    /statements?\s+of\s+earnings/i,
+    /statements?\s+of\s+revenues?\s+and\s+expenses/i,
   ],
   balance_sheet: [
     /balance\s+sheet/i,
-    /statement\s+of\s+financial\s+position/i,
+    /statement\s+of\s+financial\s+(position|condition)/i,
     /consolidated\s+balance\s+sheet/i,
+    /statements?\s+of\s+(assets|financial\s+condition|net\s+assets)/i,
   ],
   cash_flow: [
     /cash\s+flow\s+statement/i,
     /statement\s+of\s+cash\s+flows/i,
     /consolidated\s+cash\s+flow/i,
+    /statements?\s+of\s+cash\s+flows/i,
   ],
   equity_statement: [
     /statement\s+of\s+changes\s+in\s+equity/i,
-    /changes\s+in\s+(shareholders|stockholders|members)\W?\s*(equity|capital)/i,
+    /changes\s+in\s+(shareholders|stockholders|members|partners)\W?\s*(equity|capital)/i,
     /equity\s+roll-?forward/i,
+    /statements?\s+of\s+(changes\s+in\s+)?(stockholders|shareholders|members|partners)\W?\s*(equity|capital)/i,
   ],
   notes: [
     /^notes?\s+to\s+the\s+(consolidated\s+)?(financial\s+statements?|accounts)/im,
