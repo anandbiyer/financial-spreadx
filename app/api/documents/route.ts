@@ -53,6 +53,7 @@ export async function GET(request: NextRequest) {
 // ── POST /api/documents — 10-stage pipeline ─────────────────────────────────
 export async function POST(request: NextRequest) {
   let documentId: string | null = null;
+  const debugErrors: string[] = [];
 
   try {
     // ── Stage 1: Upload to Vercel Blob + create DB record ─────────────────
@@ -110,7 +111,7 @@ export async function POST(request: NextRequest) {
           if (probeRows.length > 0) {
             visionChunks.push(probeRows.map((r) => r.raw_label).join('\n'));
           }
-        } catch (e) { console.error(`[Stage4 probe] page ${pageNum}:`, e); }
+        } catch (e) { const msg = `[Stage4 probe p${pageNum}] ${e instanceof Error ? e.message : String(e)}`; console.error(msg); debugErrors.push(msg); }
       }
       visionSampleText = visionChunks.join('\n\n').slice(0, 6000);
     }
@@ -189,7 +190,7 @@ export async function POST(request: NextRequest) {
             rowsToInsert.push(...bestRows.filter((r) => r.rawLabel.trim()));
             ocrPageNums.add(pageNum);
           }
-        } catch (e) { console.error(`[Stage5 fallback] page ${pageNum}:`, e); }
+        } catch (e) { const msg = `[Stage5 fallback p${pageNum}] ${e instanceof Error ? e.message : String(e)}`; console.error(msg); debugErrors.push(msg); }
       }
     }
 
@@ -399,7 +400,7 @@ export async function POST(request: NextRequest) {
     // ── Stage 10: Status update + review queue ────────────────────────────
     await updateDocumentValidation(documentId, validationSummary, 'ready_for_review');
 
-    return NextResponse.json({ documentId });
+    return NextResponse.json({ documentId, debugErrors: debugErrors.length ? debugErrors : undefined });
 
   } catch (error) {
     console.error('[POST /api/documents] Pipeline error:', error);
