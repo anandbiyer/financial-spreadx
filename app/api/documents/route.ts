@@ -101,19 +101,18 @@ export async function POST(request: NextRequest) {
     // to feed into the template classifier instead of empty text.
     let visionSampleText = '';
     if (filterResult.allScannedFallback) {
-      const probePagesNums = classifiedPages.slice(0, 4).map((p) => p.pageNumber);
-      const visionChunks: string[] = [];
-      for (const pageNum of probePagesNums) {
-        try {
-          const png = await rasterizePage(buffer, pageNum, 1.5);
-          // Use income_statement as probe — Claude will still identify the actual type
-          const probeRows = await extractStatementFromImage(png, 'income_statement', 'T0_unknown', pageNum);
-          if (probeRows.length > 0) {
-            visionChunks.push(probeRows.map((r) => r.raw_label).join('\n'));
-          }
-        } catch (e) { const msg = `[Stage4 probe p${pageNum}] ${e instanceof Error ? e.message : String(e)}`; console.error(msg); debugErrors.push(msg); }
-      }
-      visionSampleText = visionChunks.join('\n\n').slice(0, 6000);
+      // Probe first 2 pages in parallel (limit to 2 to save time budget)
+      const probePagesNums = classifiedPages.slice(0, 2).map((p) => p.pageNumber);
+      const visionChunks = await Promise.all(
+        probePagesNums.map(async (pageNum) => {
+          try {
+            const png = await rasterizePage(buffer, pageNum, 1.5);
+            const probeRows = await extractStatementFromImage(png, 'income_statement', 'T0_unknown', pageNum);
+            return probeRows.length > 0 ? probeRows.map((r) => r.raw_label).join('\n') : '';
+          } catch (e) { const msg = `[Stage4 probe p${pageNum}] ${e instanceof Error ? e.message : String(e)}`; console.error(msg); debugErrors.push(msg); return ''; }
+        }),
+      );
+      visionSampleText = visionChunks.filter(Boolean).join('\n\n').slice(0, 6000);
     }
 
     const allSelectedNums = [...filterResult.selectedPages.values()].flat();
@@ -160,37 +159,52 @@ export async function POST(request: NextRequest) {
     // fund accounts) may be absorbed into the dominant statement type on that page.
     if (filterResult.allScannedFallback) {
       const fallbackPageNums = filterResult.selectedPages.get('unclassified') ?? [];
-      for (const pageNum of fallbackPageNums) {
-        try {
-          const png = await rasterizePage(buffer, pageNum, 2.0);
-          let bestRows: typeof rowsToInsert = [];
-          let bestStmt = 'income_statement' as typeof STATEMENT_TYPES[number];
-          for (const stType of STATEMENT_TYPES) {
+      // Process pages in batches of 2; within each page run 4 statement types in parallel
+      const PAGE_BATCH = 2;
+      for (let b = 0; b < fallbackPageNums.length; b += PAGE_BATCH) {
+        const batch = fallbackPageNums.slice(b, b + PAGE_BATCH);
+        const batchResults = await Promise.all(
+          batch.map(async (pageNum) => {
             try {
-              const rows = await extractStatementFromImage(png, stType, templateType, pageNum);
-              if (rows.length > bestRows.length) {
-                bestRows = rows.map((row) => ({
-                  documentId: documentId!,
-                  statementType: stType,
-                  rawLabel: row.raw_label,
-                  rawValues: row.raw_values as any,
-                  page: pageNum,
-                  sectionPath: row.section_path,
-                  indentationLevel: Math.round(row.indentation_level),
-                  noteRef: row.note_ref,
-                  isSubtotal: row.is_subtotal,
-                  statementScope: 'unknown',
-                  columnMetadata: {} as any,
-                }));
-                bestStmt = stType;
+              const png = await rasterizePage(buffer, pageNum, 2.0);
+              // Run all 4 statement types in parallel — winner by row count
+              const results = await Promise.all(
+                STATEMENT_TYPES.map(async (stType) => {
+                  try {
+                    const rows = await extractStatementFromImage(png, stType, templateType, pageNum);
+                    return { stType, rows };
+                  } catch { return { stType, rows: [] }; }
+                }),
+              );
+              const best = results.reduce((a, b) => (b.rows.length > a.rows.length ? b : a), results[0]);
+              if (best.rows.length > 0) {
+                return {
+                  pageNum,
+                  rows: best.rows.map((row) => ({
+                    documentId: documentId!,
+                    statementType: best.stType,
+                    rawLabel: row.raw_label,
+                    rawValues: row.raw_values as any,
+                    page: pageNum,
+                    sectionPath: row.section_path,
+                    indentationLevel: Math.round(row.indentation_level),
+                    noteRef: row.note_ref,
+                    isSubtotal: row.is_subtotal,
+                    statementScope: 'unknown',
+                    columnMetadata: {} as any,
+                  })).filter((r) => r.rawLabel.trim()),
+                };
               }
-            } catch { /* try next */ }
+            } catch (e) { const msg = `[Stage5 fallback p${pageNum}] ${e instanceof Error ? e.message : String(e)}`; console.error(msg); debugErrors.push(msg); }
+            return null;
+          }),
+        );
+        for (const result of batchResults) {
+          if (result) {
+            rowsToInsert.push(...result.rows);
+            ocrPageNums.add(result.pageNum);
           }
-          if (bestRows.length > 0) {
-            rowsToInsert.push(...bestRows.filter((r) => r.rawLabel.trim()));
-            ocrPageNums.add(pageNum);
-          }
-        } catch (e) { const msg = `[Stage5 fallback p${pageNum}] ${e instanceof Error ? e.message : String(e)}`; console.error(msg); debugErrors.push(msg); }
+        }
       }
     }
 
