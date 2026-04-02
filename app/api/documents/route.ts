@@ -142,6 +142,8 @@ export async function POST(request: NextRequest) {
       currencyCode: classification.detected_currency,
       unitScale: classification.detected_unit_scale,
       statementScopes: classification.statement_scopes,
+      companyName: classification.company_name ?? null,
+      reportYear: classification.report_years?.length ? classification.report_years : null,
     }).where(eq(documents.id, documentId));
 
     // ── Stage 5: Row extraction (text + OCR branch) ───────────────────────

@@ -19,6 +19,8 @@ const apiSchema = z.object({
   detected_unit_scale: z.enum(['units', 'thousands', 'lakhs', 'crore', 'millions', 'billions', 'unknown']),
   statement_types_found: z.array(z.enum(['income_statement', 'balance_sheet', 'cash_flow', 'equity_statement'])),
   statement_scopes: z.array(z.enum(['standalone', 'consolidated', 'unknown'])),
+  company_name: z.string().describe('Legal name of the reporting entity, e.g. "LT Finance Limited"'),
+  report_years: z.array(z.number()).describe('Calendar or fiscal years covered, e.g. [2019, 2018]'),
 });
 
 // Stricter validation schema (used for unit tests and post-API validation)
@@ -30,6 +32,8 @@ export const classificationSchema = z.object({
   detected_unit_scale: z.enum(['units', 'thousands', 'lakhs', 'crore', 'millions', 'billions', 'unknown']),
   statement_types_found: z.array(z.enum(['income_statement', 'balance_sheet', 'cash_flow', 'equity_statement'])),
   statement_scopes: z.array(z.enum(['standalone', 'consolidated', 'unknown'])),
+  company_name: z.string(),
+  report_years: z.array(z.number()),
 });
 
 export type ClassificationResult = z.infer<typeof classificationSchema>;
@@ -74,7 +78,9 @@ Return your classification with:
 - detected_currency: ISO currency code (e.g., USD, GBP, INR, HKD, RMB, NTD)
 - detected_unit_scale: the unit scale used in the document
 - statement_types_found: which financial statements are present
-- statement_scopes: whether statements are standalone, consolidated, or unknown`,
+- statement_scopes: whether statements are standalone, consolidated, or unknown
+- company_name: the legal name of the reporting entity (e.g. "LT Finance Limited")
+- report_years: array of calendar/fiscal years covered (e.g. [2019, 2018])`,
   });
 
   // Fallback to T0_unknown if confidence is below threshold
