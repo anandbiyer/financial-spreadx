@@ -1,0 +1,32 @@
+import type { TemplateRuleSet } from './types';
+
+export const T8_IFRS_ASIA: TemplateRuleSet = {
+  templateType: 'T8',
+  name: 'IFRS Asia — Securities / Broker-Dealer',
+  signals: ['Brokerage handling fees', 'Securities lending income', 'Clearing settlement funds', 'Customer margin accounts'],
+  rules: [
+    { normalizedLabel: 'commission and fee income', canonicalField: 'commission_income', confidence: 0.98 },
+    { normalizedLabel: 'brokerage handling fee income', canonicalField: 'commission_income', confidence: 0.97 },
+    { normalizedLabel: 'brokerage handling fees', canonicalField: 'commission_income', confidence: 0.97 },
+    { normalizedLabel: 'brokerage commission', canonicalField: 'commission_income', confidence: 0.95 },
+    { normalizedLabel: 'securities lending income', canonicalField: 'securities_lending_income', confidence: 0.97 },
+    { normalizedLabel: 'interest income', canonicalField: 'interest_income', confidence: 0.97 },
+    { normalizedLabel: 'net interest income', canonicalField: 'interest_income', confidence: 0.95 },
+    { normalizedLabel: 'total operating revenue', canonicalField: 'total_revenue', confidence: 0.98 },
+    { normalizedLabel: 'total revenue', canonicalField: 'total_revenue', confidence: 0.98 },
+    { normalizedLabel: 'other income', canonicalField: 'other_income', confidence: 0.90 },
+    { normalizedLabel: 'employee compensation and benefits', canonicalField: 'employee_benefits_expense', confidence: 0.95 },
+    { normalizedLabel: 'finance costs', canonicalField: 'finance_costs', confidence: 0.97 },
+    { normalizedLabel: 'profit before income tax', canonicalField: 'profit_before_tax', confidence: 0.98 },
+    { normalizedLabel: 'income tax expense', canonicalField: 'income_tax_expense', confidence: 0.97 },
+    { normalizedLabel: 'profit for the year', canonicalField: 'net_income', confidence: 0.98 },
+    { normalizedLabel: 'profit for the period', canonicalField: 'net_income', confidence: 0.97 },
+    { normalizedLabel: 'clearing settlement funds', canonicalField: 'clearing_funds', confidence: 0.98 },
+    { normalizedLabel: 'customer margin accounts', canonicalField: 'clearing_funds', confidence: 0.90 },
+    { normalizedLabel: 'cash and bank balances', canonicalField: 'cash_and_equivalents', confidence: 0.97 },
+    { normalizedLabel: 'total assets', canonicalField: 'total_assets', confidence: 0.99 },
+    { normalizedLabel: 'total liabilities', canonicalField: 'total_liabilities', confidence: 0.99 },
+    { normalizedLabel: 'total equity', canonicalField: 'total_equity', confidence: 0.99 },
+    { normalizedLabel: 'borrowings', canonicalField: 'borrowings', confidence: 0.97 },
+  ],
+};

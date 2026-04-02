@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# PDF data files (large binaries)
+/demo-docs/
+/Sample_Data/
+/__tests__/fixtures/*.pdf

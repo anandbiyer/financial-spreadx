@@ -128,3 +128,59 @@
     @apply font-sans;
   }
 }
+
+/* ── Financial SpreadX design tokens ── */
+:root {
+  /* Dashboard shell */
+  --sx-sidebar-bg: #0f1117;
+  --sx-content-bg: #f4f3f0;
+  --sx-border: #e4e2dc;
+  --sx-border-soft: #ccc9bf;
+  --sx-text: #1a1917;
+  --sx-text-mid: #4a4844;
+  --sx-text-dim: #8a8880;
+
+  /* Template badge colours (bg / text) */
+  --sx-t1-bg: #dbeafe; --sx-t1-fg: #1e40af;
+  --sx-t2-bg: #dbeafe; --sx-t2-fg: #1e40af;
+  --sx-t3-bg: #ede9fe; --sx-t3-fg: #4c1d95;
+  --sx-t4-bg: #ede9fe; --sx-t4-fg: #4c1d95;
+  --sx-t5-bg: #ccfbf1; --sx-t5-fg: #134e4a;
+  --sx-t6-bg: #fef3c7; --sx-t6-fg: #92400e;
+  --sx-t7-bg: #ffedd5; --sx-t7-fg: #9a3412;
+  --sx-t8-bg: #ccfbf1; --sx-t8-fg: #134e4a;
+
+  /* Status badges */
+  --sx-status-approved-bg: #dcfce7;  --sx-status-approved-fg: #166534;
+  --sx-status-review-bg:   #fef3c7;  --sx-status-review-fg:   #92400e;
+  --sx-status-error-bg:    #fee2e2;  --sx-status-error-fg:    #991b1b;
+  --sx-status-processing-bg: #dbeafe; --sx-status-processing-fg: #1e40af;
+
+  /* Confidence / health thresholds */
+  --sx-conf-high:   #15803d;   /* ≥ 90 % */
+  --sx-conf-mid:    #b45309;   /* 60–89 % */
+  --sx-conf-low:    #b91c1c;   /* < 60 % */
+
+  /* Validation card borders */
+  --sx-val-pass: #15803d;
+  --sx-val-fail: #b91c1c;
+
+  /* Nav dot colours */
+  --sx-dot-upload:   #60a5fa;
+  --sx-dot-docs:     #34d399;
+  --sx-dot-workbench:#f59e0b;
+  --sx-dot-tree:     #5eead4;
+  --sx-dot-validate: #f87171;
+  --sx-dot-export:   #86efac;
+}
+
+/* Flagged row highlight used in Review Workbench */
+.sx-row-flagged td {
+  background: #fffbeb !important;
+}
+
+/* Subtotal row used in Statement Tree */
+.sx-row-subtotal {
+  font-weight: 500;
+  background: #f9f8f5;
+}

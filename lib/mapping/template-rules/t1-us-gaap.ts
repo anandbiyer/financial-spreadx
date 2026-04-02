@@ -1,0 +1,30 @@
+import type { TemplateRuleSet } from './types';
+
+export const T1_US_GAAP: TemplateRuleSet = {
+  templateType: 'T1',
+  name: 'US GAAP — Standard Corporate',
+  signals: ['EPS basic/diluted', 'Weighted avg shares', 'Income from operations', 'Stockholders equity'],
+  rules: [
+    { normalizedLabel: 'net revenues', canonicalField: 'total_revenue', confidence: 0.95 },
+    { normalizedLabel: 'total revenues', canonicalField: 'total_revenue', confidence: 0.98 },
+    { normalizedLabel: 'interest income', canonicalField: 'interest_income', confidence: 0.97 },
+    { normalizedLabel: 'interest expense', canonicalField: 'finance_costs', confidence: 0.97 },
+    { normalizedLabel: 'other income', canonicalField: 'other_income', confidence: 0.90 },
+    { normalizedLabel: 'income from continuing operations', canonicalField: 'operating_income', confidence: 0.95 },
+    { normalizedLabel: 'income from operations', canonicalField: 'operating_income', confidence: 0.95 },
+    { normalizedLabel: 'income before income taxes', canonicalField: 'profit_before_tax', confidence: 0.98 },
+    { normalizedLabel: 'provision for income taxes', canonicalField: 'income_tax_expense', confidence: 0.97 },
+    { normalizedLabel: 'income tax expense', canonicalField: 'income_tax_expense', confidence: 0.97 },
+    { normalizedLabel: 'net income', canonicalField: 'net_income', confidence: 0.99 },
+    { normalizedLabel: 'net income loss', canonicalField: 'net_income', confidence: 0.97 },
+    { normalizedLabel: 'earnings per share basic', canonicalField: 'eps_basic', confidence: 0.98 },
+    { normalizedLabel: 'earnings per share diluted', canonicalField: 'eps_diluted', confidence: 0.98 },
+    { normalizedLabel: 'weighted average shares outstanding', canonicalField: 'weighted_avg_shares', confidence: 0.97 },
+    { normalizedLabel: 'total assets', canonicalField: 'total_assets', confidence: 0.99 },
+    { normalizedLabel: 'total liabilities', canonicalField: 'total_liabilities', confidence: 0.99 },
+    { normalizedLabel: 'total stockholders equity', canonicalField: 'total_equity', confidence: 0.98 },
+    { normalizedLabel: 'total shareholders equity', canonicalField: 'total_equity', confidence: 0.98 },
+    { normalizedLabel: 'retained earnings', canonicalField: 'retained_earnings', confidence: 0.97 },
+    { normalizedLabel: 'common stock', canonicalField: 'share_capital', confidence: 0.95 },
+  ],
+};
