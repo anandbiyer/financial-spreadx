@@ -24,6 +24,53 @@ const extractedRowSchema = z.object({
 
 export type VisionExtractedRow = z.infer<typeof extractedRowSchema>['rows'][number];
 
+const VALID_STATEMENT_TYPES = [
+  'income_statement',
+  'balance_sheet',
+  'cash_flow',
+  'equity_statement',
+] as const;
+
+/**
+ * Identify the financial statement type shown on a page image.
+ *
+ * Uses a lightweight Claude Vision call to read the page heading and
+ * return one of the 4 canonical statement types (or 'unknown').
+ */
+export async function identifyStatementTypeFromImage(
+  imageBuffer: Buffer,
+  pageNumber: number,
+): Promise<typeof VALID_STATEMENT_TYPES[number] | 'unknown'> {
+  const base64 = imageBuffer.toString('base64');
+
+  const response = await client.messages.create({
+    model: CLAUDE_MODEL,
+    max_tokens: 50,
+    messages: [{
+      role: 'user',
+      content: [
+        {
+          type: 'image',
+          source: { type: 'base64', media_type: 'image/png', data: base64 },
+        },
+        {
+          type: 'text',
+          text: `This is page ${pageNumber} of a financial document. Look at the page heading/title and identify which financial statement this page contains. Respond with EXACTLY one of these values (nothing else):
+income_statement
+balance_sheet
+cash_flow
+equity_statement
+unknown`,
+        },
+      ],
+    }],
+  });
+
+  const text = (response.content.find((b) => b.type === 'text')?.text ?? '').trim().toLowerCase();
+  const match = VALID_STATEMENT_TYPES.find((t) => text.includes(t));
+  return match ?? 'unknown';
+}
+
 /**
  * Extract financial rows from a rasterized PDF page image.
  *

@@ -10,7 +10,7 @@ import { classifyColumnHeaders } from '@/lib/pdf/column-classifier';
 import { rasterizePage } from '@/lib/pdf/page-rasterizer';
 import { classifyDocument } from '@/lib/claude/classify';
 import { extractStatement } from '@/lib/claude/extract';
-import { extractStatementFromImage } from '@/lib/claude/extract-vision';
+import { extractStatementFromImage, identifyStatementTypeFromImage } from '@/lib/claude/extract-vision';
 import { extractNote } from '@/lib/claude/extract-notes';
 import { runMappingEngine, type ExtractedRowInput } from '@/lib/mapping';
 import { claudeMapLabel } from '@/lib/claude/map';
@@ -167,22 +167,16 @@ export async function POST(request: NextRequest) {
           batch.map(async (pageNum) => {
             try {
               const png = await rasterizePage(buffer, pageNum, 2.0);
-              // Run all 4 statement types in parallel — winner by row count
-              const results = await Promise.all(
-                STATEMENT_TYPES.map(async (stType) => {
-                  try {
-                    const rows = await extractStatementFromImage(png, stType, templateType, pageNum);
-                    return { stType, rows };
-                  } catch { return { stType, rows: [] }; }
-                }),
-              );
-              const best = results.reduce((a, b) => (b.rows.length > a.rows.length ? b : a), results[0]);
-              if (best.rows.length > 0) {
+              // Identify the statement type from the page heading, then extract
+              const detectedType = await identifyStatementTypeFromImage(png, pageNum);
+              const stType = detectedType === 'unknown' ? 'income_statement' : detectedType;
+              const rows = await extractStatementFromImage(png, stType, templateType, pageNum);
+              if (rows.length > 0) {
                 return {
                   pageNum,
-                  rows: best.rows.map((row) => ({
+                  rows: rows.map((row) => ({
                     documentId: documentId!,
-                    statementType: best.stType,
+                    statementType: stType,
                     rawLabel: row.raw_label,
                     rawValues: row.raw_values as any,
                     page: pageNum,
