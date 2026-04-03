@@ -44,3 +44,7 @@ next-env.d.ts
 /demo-docs/
 /Sample_Data/
 /__tests__/fixtures/*.pdf
+/demo-docs-reseed/
+/demo-docs-retry/
+
+.vercel

@@ -10,6 +10,8 @@ describe('T4.3 — Classification Zod schema validation', () => {
     detected_unit_scale: 'crore',
     statement_types_found: ['income_statement', 'balance_sheet'],
     statement_scopes: ['standalone'],
+    company_name: 'HDFC Credila Financial Services Limited',
+    report_years: [2023, 2022],
   };
 
   it('accepts valid classification data', () => {
