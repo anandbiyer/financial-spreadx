@@ -349,10 +349,13 @@ export async function POST(request: NextRequest) {
     );
 
     // ── Stage 7b: Claude fallback for unmatched rows ──────────────────────
-    // Process in batches of 5 to avoid overwhelming the Claude API
-    const CLAUDE_FALLBACK_BATCH = 5;
-    for (let b = 0; b < unmatchedIndices.length; b += CLAUDE_FALLBACK_BATCH) {
-      const batch = unmatchedIndices.slice(b, b + CLAUDE_FALLBACK_BATCH);
+    // Cap at 40 rows to stay within the 300s function timeout budget.
+    // Rows beyond the cap remain unmatched (canonical_field='unknown').
+    const CLAUDE_FALLBACK_BATCH = 10;
+    const CLAUDE_FALLBACK_MAX = 40;
+    const cappedUnmatched = unmatchedIndices.slice(0, CLAUDE_FALLBACK_MAX);
+    for (let b = 0; b < cappedUnmatched.length; b += CLAUDE_FALLBACK_BATCH) {
+      const batch = cappedUnmatched.slice(b, b + CLAUDE_FALLBACK_BATCH);
       await Promise.all(
         batch.map(async (idx) => {
           const row = engineInput[idx];
