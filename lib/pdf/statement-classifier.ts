@@ -90,13 +90,24 @@ export interface ClassifiedStatement {
 }
 
 /**
+ * Normalize text for heading detection: replace Windows-1252 smart quotes
+ * and other common quote variants with ASCII apostrophe so regex patterns
+ * using ['\u2019]? can match reliably.
+ */
+function normalizeHeadingText(text: string): string {
+  return text
+    .replace(/[\u0091\u0092\u2018\u2019\u201A\u201B]/g, "'")  // smart single quotes
+    .replace(/[\u0093\u0094\u201C\u201D\u201E\u201F]/g, '"'); // smart double quotes
+}
+
+/**
  * Classify statement type(s) for a digital/hybrid page.
  * Scans first 600 chars (not 400) to catch dual-statement pages.
  * Returns ALL matching types — dual-statement pages return length 2.
  * Ordered by first match in STATEMENT_SIGNALS (specificity order).
  */
 export function classifyStatementType(textContent: string): ClassifiedStatement[] {
-  const window = textContent.slice(0, 600);
+  const window = normalizeHeadingText(textContent.slice(0, 600));
   const results: ClassifiedStatement[] = [];
   const seenTypes = new Set<StatementType>();
 
