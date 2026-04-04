@@ -59,7 +59,7 @@ describe('T3.16-T3.23 — Formula Validator (M5)', () => {
       profit_before_tax: 1500, income_tax_expense: 300, net_income: 1200,
     };
     const checks = runAllValidations(map, 'T5');
-    expect(checks.length).toBe(12);
+    expect(checks.length).toBe(13);
 
     const v01 = checks.find(c => c.checkId === 'V01')!;
     expect(v01.status).not.toBe('skipped');

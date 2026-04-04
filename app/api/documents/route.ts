@@ -7,10 +7,11 @@ import { documents, mappingRules } from '@/lib/db/schema';
 import { classifyPdfPages } from '@/lib/pdf/page-classifier';
 import { filterFinancialPages } from '@/lib/pdf/page-filter';
 import { classifyColumnHeaders } from '@/lib/pdf/column-classifier';
-import { rasterizePage } from '@/lib/pdf/page-rasterizer';
+import { rasterizePage, rasterizePages } from '@/lib/pdf/page-rasterizer';
+import { classifyStatementType, classifyScannedPages } from '@/lib/pdf/statement-classifier';
 import { classifyDocument } from '@/lib/claude/classify';
 import { extractStatement } from '@/lib/claude/extract';
-import { extractStatementFromImage, identifyStatementTypeFromImage } from '@/lib/claude/extract-vision';
+import { extractStatementFromImage } from '@/lib/claude/extract-vision';
 import { extractNote } from '@/lib/claude/extract-notes';
 import { runMappingEngine, type ExtractedRowInput } from '@/lib/mapping';
 import { claudeMapLabel } from '@/lib/claude/map';
@@ -91,6 +92,14 @@ export async function POST(request: NextRequest) {
       })),
     );
 
+    // ── Stage 2b: Statement type classification (digital path) ─────────
+    for (const page of classifiedPages) {
+      if (page.classification === 'scanned') continue;
+      const hits = classifyStatementType(page.textContent ?? '');
+      page.section_type = hits[0].statementType;
+      page.secondary_section_type = hits[1]?.statementType ?? null;
+    }
+
     // ── Stage 3: Financial page filtering ────────────────────────────────
     const filterResult = filterFinancialPages(classifiedPages);
 
@@ -99,9 +108,10 @@ export async function POST(request: NextRequest) {
 
     // For all-scanned PDFs, rasterize first pages and extract text via vision
     // to feed into the template classifier instead of empty text.
+    const scannedPages = classifiedPages.filter((p) => p.classification === 'scanned');
+    const allScanned = scannedPages.length > 0 && scannedPages.length === classifiedPages.length;
     let visionSampleText = '';
-    if (filterResult.allScannedFallback) {
-      // Probe first 2 pages in parallel (limit to 2 to save time budget)
+    if (allScanned) {
       const probePagesNums = classifiedPages.slice(0, 2).map((p) => p.pageNumber);
       const visionChunks = await Promise.all(
         probePagesNums.map(async (pageNum) => {
@@ -116,7 +126,7 @@ export async function POST(request: NextRequest) {
     }
 
     const allSelectedNums = [...filterResult.selectedPages.values()].flat();
-    const sampleText = filterResult.allScannedFallback
+    const sampleText = allScanned
       ? visionSampleText
       : allSelectedNums
           .slice(0, 5)
@@ -146,61 +156,40 @@ export async function POST(request: NextRequest) {
       reportYear: classification.report_years?.length ? classification.report_years : null,
     }).where(eq(documents.id, documentId));
 
+    // ── Stage 4b: Statement type classification — scanned (vision) ─────
+    if (scannedPages.length > 0) {
+      const scannedPageNums = scannedPages.map((p) => p.pageNumber);
+      const imageBuffers = await rasterizePages(buffer, scannedPageNums, 1.5);
+      const scannedClassifications = await classifyScannedPages(imageBuffers);
+
+      for (const [pageNum, cls] of scannedClassifications) {
+        const page = scannedPages.find((p) => p.pageNumber === pageNum)!;
+        const [primaryType, secondaryType] = cls.statement_types;
+
+        page.section_type = primaryType;
+        page.secondary_section_type = secondaryType ?? null;
+        // Store PNG buffer for reuse in Stage 5 — avoids double rasterisation
+        page.imageBuffer = imageBuffers.get(pageNum);
+
+        // Add to filterResult so Stage 5 extracts this page
+        if (primaryType && primaryType !== 'other' && primaryType !== 'notes') {
+          const arr = filterResult.selectedPages.get(primaryType) ?? [];
+          arr.push(pageNum);
+          filterResult.selectedPages.set(primaryType, arr);
+        }
+        if (secondaryType && secondaryType !== 'other' && secondaryType !== 'notes') {
+          const arr2 = filterResult.selectedPages.get(secondaryType) ?? [];
+          arr2.push(pageNum);
+          filterResult.selectedPages.set(secondaryType, arr2);
+        }
+      }
+    }
+
     // ── Stage 5: Row extraction (text + OCR branch) ───────────────────────
     await updateDocumentStatus(documentId, 'extracting');
 
     const rowsToInsert: Parameters<typeof insertExtractedRows>[0] = [];
-    // Track which page numbers used OCR (for confidence penalty in mapping engine)
     const ocrPageNums = new Set<number>();
-
-    // All-scanned fallback: run vision on every page and auto-detect statement type.
-    // Winner-takes-all by row count across all 4 statement types per page.
-    // Note: equity statements that share pages with IS/BS content (common in compact
-    // fund accounts) may be absorbed into the dominant statement type on that page.
-    if (filterResult.allScannedFallback) {
-      const fallbackPageNums = filterResult.selectedPages.get('unclassified') ?? [];
-      // Process pages in batches of 2; within each page run 4 statement types in parallel
-      const PAGE_BATCH = 2;
-      for (let b = 0; b < fallbackPageNums.length; b += PAGE_BATCH) {
-        const batch = fallbackPageNums.slice(b, b + PAGE_BATCH);
-        const batchResults = await Promise.all(
-          batch.map(async (pageNum) => {
-            try {
-              const png = await rasterizePage(buffer, pageNum, 2.0);
-              // Identify the statement type from the page heading, then extract
-              const detectedType = await identifyStatementTypeFromImage(png, pageNum);
-              const stType = detectedType === 'unknown' ? 'income_statement' : detectedType;
-              const rows = await extractStatementFromImage(png, stType, templateType, pageNum);
-              if (rows.length > 0) {
-                return {
-                  pageNum,
-                  rows: rows.map((row) => ({
-                    documentId: documentId!,
-                    statementType: stType,
-                    rawLabel: row.raw_label,
-                    rawValues: row.raw_values as any,
-                    page: pageNum,
-                    sectionPath: row.section_path,
-                    indentationLevel: Math.round(row.indentation_level),
-                    noteRef: row.note_ref,
-                    isSubtotal: row.is_subtotal,
-                    statementScope: 'unknown',
-                    columnMetadata: {} as any,
-                  })).filter((r) => r.rawLabel.trim()),
-                };
-              }
-            } catch (e) { const msg = `[Stage5 fallback p${pageNum}] ${e instanceof Error ? e.message : String(e)}`; console.error(msg); debugErrors.push(msg); }
-            return null;
-          }),
-        );
-        for (const result of batchResults) {
-          if (result) {
-            rowsToInsert.push(...result.rows);
-            ocrPageNums.add(result.pageNum);
-          }
-        }
-      }
-    }
 
     for (const stType of STATEMENT_TYPES) {
       const pageNums = filterResult.selectedPages.get(stType) ?? [];
@@ -220,7 +209,8 @@ export async function POST(request: NextRequest) {
           rows = await extractStatement(pageData.textContent, stType, templateType);
         } else {
           try {
-            const png = await rasterizePage(buffer, pageNum, 2.0);
+            // Reuse PNG buffer from Stage 4b if available, otherwise rasterize
+            const png = pageData.imageBuffer ?? await rasterizePage(buffer, pageNum, 2.0);
             rows = await extractStatementFromImage(png, stType, templateType, pageNum);
             ocrPageNums.add(pageNum);
           } catch {

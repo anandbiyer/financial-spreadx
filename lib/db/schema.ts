@@ -95,6 +95,10 @@ export const documentPages = pgTable(
     isSelected: boolean('is_selected').default(false), // selected for financial extraction
     textContent: text('text_content'), // only stored for selected pages
     ocrMethod: text('ocr_method').default('none'), // 'none' | 'claude_vision'
+    // Req F additions:
+    secondarySectionType: text('secondary_section_type'), // for dual-statement pages
+    classificationConfidence: real('classification_confidence'), // 0.0-1.0; null for digital (deterministic = 1.0)
+    headingVerbatim: text('heading_verbatim'), // verbatim heading text from page scan or vision
   },
   (table) => [
     index('idx_document_pages_document_id').on(table.documentId),

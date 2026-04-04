@@ -187,5 +187,21 @@ export function runAllValidations(
     status: 'skipped', reason: 'Requires prior year document for comparison',
   });
 
+  // V13: All four statement types present (severity: warn)
+  const presentTypes = new Set(Object.values(map).map((v: any) => v?.statementType).filter(Boolean));
+  const requiredTypes = ['balance_sheet', 'income_statement', 'cash_flow', 'equity_statement'];
+  const missingTypes = requiredTypes.filter(t => !presentTypes.has(t));
+  checks.push({
+    checkId: 'V13',
+    name: 'All four statement types present',
+    formula: 'BS ∩ IS ∩ CF ∩ EQ = 4',
+    tolerance: 0,
+    status: missingTypes.length === 0 ? 'passed' : 'failed',
+    lhs: requiredTypes.length - missingTypes.length,
+    rhs: requiredTypes.length,
+    diffPct: missingTypes.length > 0 ? (missingTypes.length / requiredTypes.length) * 100 : 0,
+    reason: missingTypes.length > 0 ? `Missing: ${missingTypes.join(', ')}` : undefined,
+  });
+
   return checks;
 }

@@ -14,6 +14,10 @@ export interface ClassifiedPage {
   asciiRatio: number;
   textContent: string;
   requiresOCR: boolean;
+  // Req F: set by Stage 2b (digital) or Stage 4b (scanned)
+  section_type?: string;
+  secondary_section_type?: string | null;
+  imageBuffer?: Buffer; // PNG buffer from rasterization, reused in Stage 5
 }
 
 /**

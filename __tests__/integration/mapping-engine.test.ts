@@ -36,7 +36,7 @@ describe('T3.37 — runMappingEngine with 10 mock T5 IS rows', () => {
 
   it('runs V01-V12 validations', () => {
     const { validationChecks } = runMappingEngine(rows, 'T5', 'test-doc-1');
-    expect(validationChecks.length).toBe(12);
+    expect(validationChecks.length).toBe(13);
   });
 });
 
