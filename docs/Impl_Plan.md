@@ -692,8 +692,307 @@ financial-spreadx/
 | 6 | Frontend (6 Screens) | 17 | 24 | 41 |
 | 7 | Export Service | 3 | 20 | 23 |
 | 8 | Seed, Verify & Deploy | 8 | 25 | 33 |
-| **Total** | | **89** | **170** | **259** |
+| 9 | Req F: Statement Type Classifier | 15 | 20 | 35 |
+| **Total** | | **104** | **190** | **294** |
 
 ---
 
-*Financial SpreadX - Demo Design v2.1 - Implementation Plan with Testing*
+## Phase 9 — Requirement F: Statement Type Classifier
+
+### Pipeline Flow Diagram (After Req F)
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    POST /api/documents (10+2 Stages)                    │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                ┌───────────────────▼───────────────────┐
+                │  STAGE 1: Upload & Create DB Record    │
+                │  • FormData → Vercel Blob              │
+                │  • createDocument() → documents table   │
+                └───────────────────┬───────────────────┘
+                                    │
+                ┌───────────────────▼───────────────────┐
+                │  STAGE 2: Page Classification           │
+                │  • classifyPdfPages(buffer)             │
+                │  • Each page → digital | scanned | hybrid│
+                │  • Insert into document_pages table      │
+                └───────────────────┬───────────────────┘
+                                    │
+          ┌─────────────────────────▼─────────────────────────┐
+          │  STAGE 2b: Statement Type Classification — Digital │◄── NEW
+          │  • For each digital/hybrid page:                    │
+          │    classifyStatementType(page.textContent)          │
+          │  • 60+ STATEMENT_SIGNALS regex (deterministic)      │
+          │  • Sets page.section_type + secondary_section_type  │
+          │  • Persists to document_pages table                 │
+          │  • Cost: 0 (no Claude call, <1ms per page)          │
+          └─────────────────────────┬─────────────────────────┘
+                                    │
+                ┌───────────────────▼───────────────────┐
+                │  STAGE 3: Financial Page Filtering      │◄── CHANGED
+                │  • filterFinancialPages() now reads      │
+                │    pre-assigned page.section_type         │
+                │  • No regex re-run (pure grouping)       │
+                │  • Boundary-aware continuation (max 8)   │
+                │    stops at next assigned section type    │
+                │  • Outputs: selectedPages map by type     │
+                └───────────────────┬───────────────────┘
+                                    │
+                ┌───────────────────▼───────────────────┐
+                │  STAGE 4: Template Classification        │
+                │  • classifyDocument() via Claude          │
+                │  • Returns T1-T8, currency, scope, etc.  │
+                │  • UNCHANGED                             │
+                └───────────────────┬───────────────────┘
+                                    │
+                              ┌─────▼─────┐
+                              │  Scanned   │
+                              │  pages     │
+                              │  exist?    │
+                              └──┬─────┬──┘
+                           No   │     │  Yes
+                    ┌───────────┘     └───────────┐
+                    │                              │
+                    │    ┌─────────────────────────▼─────────────────────────┐
+                    │    │  STAGE 4b: Statement Type Classification — Scanned │◄── NEW
+                    │    │  • rasterizePages() → PNG buffers (held in memory) │
+                    │    │  • classifyScannedPages() via Claude Vision         │
+                    │    │  • Returns: statement_types[], confidence,           │
+                    │    │    heading_verbatim, scope, is_continuation          │
+                    │    │  • Adds pages to selectedPages map by type           │
+                    │    │  • PNG buffers reused in Stage 5 (no re-rasterize)   │
+                    │    │  • Persists classification to document_pages         │
+                    │    └─────────────────────────┬─────────────────────────┘
+                    │                              │
+                    └──────────────┬───────────────┘
+                                   │
+                ┌──────────────────▼──────────────────┐
+                │  STAGE 5: Row Extraction              │
+                │  • For each statement type in          │
+                │    selectedPages:                      │
+                │    ┌──────────────────────────┐        │
+                │    │ Digital page?             │        │
+                │    │ → extractStatement(text)  │        │
+                │    │ Scanned page?             │        │
+                │    │ → extractStatementFromImage│       │
+                │    │   (reuse PNG from 4b)     │        │
+                │    └──────────────────────────┘        │
+                │  • Correct statementType per page      │
+                │  • Insert into extracted_rows table     │
+                └──────────────────┬──────────────────┘
+                                   │
+                ┌──────────────────▼──────────────────┐
+                │  STAGE 6: Note Extraction             │
+                │  • extractNote() for referenced notes  │
+                │  • Insert into note_entries table       │
+                │  • UNCHANGED                           │
+                └──────────────────┬──────────────────┘
+                                   │
+                ┌──────────────────▼──────────────────┐
+                │  STAGE 7: Mapping Engine (M1-M9)      │
+                │  • runMappingEngine() + Claude fallback │
+                │  • Insert into mapped_rows table        │
+                │  • UNCHANGED                            │
+                └──────────────────┬──────────────────┘
+                                   │
+                ┌──────────────────▼──────────────────┐
+                │  STAGE 8: Entity Linking              │
+                │  • linkNotesToRows()                   │
+                │  • UNCHANGED                           │
+                └──────────────────┬──────────────────┘
+                                   │
+                ┌──────────────────▼──────────────────┐
+                │  STAGE 9: Validation (V01-V13)        │◄── CHANGED
+                │  • runAllValidations()                 │
+                │  • V01-V12 unchanged                   │
+                │  • V13 (NEW): All four statement        │
+                │    types present (severity: warn)       │
+                │  • Store results in documents table      │
+                └──────────────────┬──────────────────┘
+                                   │
+                ┌──────────────────▼──────────────────┐
+                │  STAGE 10: Status Update              │
+                │  • Set status → ready_for_review       │
+                │  • UNCHANGED                           │
+                └──────────────────────────────────────┘
+```
+
+### Regression Analysis
+
+#### Impact Matrix — Files Affected by Req F
+
+| File | Change Type | Risk | Regression Concern |
+|------|------------|------|-------------------|
+| **lib/pdf/statement-classifier.ts** | NEW | None | New file, no existing dependencies |
+| **lib/pdf/page-classifier.ts** | EXTEND | Low | `ClassifiedPage` interface gets 3 optional fields (`section_type`, `secondary_section_type`, `imageBuffer`). All existing fields unchanged. Existing consumers read only existing fields — additive change, no breakage. |
+| **lib/pdf/page-filter.ts** | REWRITE | **High** | `SECTION_PATTERNS` export removed (breaking). `filterFinancialPages()` signature unchanged but behavior changes (reads pre-assigned section_type instead of running regex). `expandWithContinuationPages()` max window 5→8 and boundary detection added. |
+| **lib/db/schema.ts** | EXTEND | Low | 3 new nullable columns on `documentPages` table. All existing columns unchanged. Existing queries unaffected (new columns default to null). Requires DB migration. |
+| **lib/claude/extract-vision.ts** | REMOVE export | Medium | `identifyStatementTypeFromImage()` removed (moved to statement-classifier.ts as `classifyScannedPages()`). Only consumer is route.ts which is also being updated. |
+| **app/api/documents/route.ts** | RESTRUCTURE | **High** | Pipeline stages 2b and 4b inserted. `allScannedFallback` path removed entirely. Stage 5 extraction now receives correct types from 2b/4b. Import changes required. |
+| **lib/mapping/formula-validator.ts** | EXTEND | Low | V13 added. `runAllValidations()` returns 13 checks instead of 12. Additive — existing V01-V12 logic untouched. |
+
+#### Downstream Dependency Analysis
+
+**1. SECTION_PATTERNS removal (page-filter.ts)**
+
+| Dependent File | Import | Action Required |
+|---------------|--------|-----------------|
+| `__tests__/unit/page-filter.test.ts` | `import { SECTION_PATTERNS }` | **MUST UPDATE.** Replace SECTION_PATTERNS tests with STATEMENT_SIGNALS tests from statement-classifier.ts. 16 regex assertions need rewriting against new dictionary. |
+| `__tests__/integration/pdf-pipeline-digital.test.ts` | `import { filterFinancialPages }` | **VERIFY.** Function signature unchanged but behavior changes. Existing test assertions on `selectedPages` output should still pass if the digital PDF test fixtures contain standard headings. |
+| `__tests__/integration/pdf-pipeline-scanned.test.ts` | `import { filterFinancialPages }` | **VERIFY.** For all-scanned PDFs, filterFinancialPages now skips scanned pages (handled by Stage 4b). Test assertions on `allScannedFallback` will break — remove these checks. |
+
+**2. ClassifiedPage interface extension (page-classifier.ts)**
+
+| Dependent File | Usage | Action Required |
+|---------------|-------|-----------------|
+| `lib/pdf/page-filter.ts` | Parameter type | No change needed — new fields are optional |
+| `__tests__/unit/page-filter.test.ts` | Mock objects `as ClassifiedPage` | **MUST UPDATE.** Mock page objects need `section_type` field added to test the new grouping behavior. |
+| `__tests__/unit/page-classifier.test.ts` | Type import only | No change needed |
+| `__tests__/integration/claude-classify.test.ts` | `classifyPdfPages()` return | No change needed — function doesn't set `section_type` |
+| `__tests__/integration/claude-extract.test.ts` | `classifyPdfPages()` return | No change needed |
+
+**3. documentPages schema extension (schema.ts)**
+
+| Dependent File | Usage | Action Required |
+|---------------|-------|-----------------|
+| `lib/db/queries/document-pages.ts` | `insertPageClassifications()` | **VERIFY.** Existing insert uses spread of provided values. New columns have defaults (null) so existing inserts won't break. Stage 2b/4b will use separate update calls. |
+| `__tests__/integration/db-queries.test.ts` | Inserts into `documentPages` | **VERIFY.** Existing test inserts don't include new columns — defaults apply. No breakage expected. |
+| All other schema consumers | Other tables | **No impact.** Changes are isolated to `documentPages` table. |
+
+**4. identifyStatementTypeFromImage removal (extract-vision.ts)**
+
+| Dependent File | Usage | Action Required |
+|---------------|-------|-----------------|
+| `app/api/documents/route.ts` | Import + call at line 171 | **MUST UPDATE.** Remove import, replace call with `classifyScannedPages()` from statement-classifier.ts. This is part of the Stage 4b insertion task. |
+| `__tests__/integration/claude-extract.test.ts` | Does NOT import this function | No impact |
+
+**5. V13 addition (formula-validator.ts)**
+
+| Dependent File | Usage | Action Required |
+|---------------|-------|-----------------|
+| `lib/mapping/index.ts` | `runAllValidations()` | **VERIFY.** Returns 13 checks instead of 12. Downstream consumers iterate results — additive, no breakage. |
+| `app/api/documents/[id]/validation/route.ts` | `runAllValidations()` | **VERIFY.** Returns results to client. V13 appears as new entry in response. No breakage. |
+| `__tests__/unit/formula-validator.test.ts` | Tests V01-V12 | **VERIFY.** Existing tests check specific check IDs — V13 won't interfere. However, any test asserting exact array length (12) will need updating to 13. |
+| `__tests__/e2e/api-documents.test.ts` | Validation check count | **VERIFY.** Tests assert `checks.length >= 3` — passes with 13. No breakage. |
+| `__tests__/e2e/full-pipeline.test.ts` | Validation checks | **VERIFY.** Tests assert `checks.length > 0` or check specific IDs — no breakage. |
+
+#### Risk Summary
+
+| Risk Level | Count | Items |
+|-----------|-------|-------|
+| **High (must fix)** | 3 | page-filter.test.ts rewrite, route.ts pipeline restructure, pdf-pipeline-scanned.test.ts update |
+| **Medium (verify)** | 5 | pdf-pipeline-digital.test.ts, db-queries.test.ts, formula-validator.test.ts, extract-vision.ts cleanup, page-filter.ts behavior |
+| **Low (no action)** | 17 | All other schema consumers, export routes, frontend components, seed scripts, note queries |
+| **None** | 1 | statement-classifier.ts (new file) |
+
+#### Stages Unchanged (No Regression Risk)
+
+The following pipeline stages and their associated tests are completely unaffected by Req F:
+
+- Stage 1 (Upload & create record)
+- Stage 4 (Template classification via Claude)
+- Stage 6 (Note extraction)
+- Stage 7 (Mapping engine M1-M9)
+- Stage 8 (Entity linking)
+- Stage 10 (Status update)
+- All frontend components and screens
+- All export routes (XLSX, JSON, raw-json)
+- All review/override routes
+- Middleware authentication
+
+### Analysis of Defect
+
+**Defect:** For digital PDFs with US GAAP plural headings (e.g. "CONSOLIDATED STATEMENTS OF INCOME"), the page filter fails to detect income statement, cash flow, and equity statement pages. All extracted rows collapse into the balance sheet tab.
+
+**Affected documents:** Cash America International 2007 (T1), Freddie Mac 2023 (T1), and potentially TPG (T2), LaBranche (T1), Jane Street (T2) — all US GAAP documents using plural "Statements of..." convention.
+
+**Root cause — two layers:**
+
+1. **Digital path (SECTION_PATTERNS in page-filter.ts):** The current 22 regex patterns use singular `statement\s+of` which does not match the US GAAP plural `STATEMENTS OF`. Only the balance sheet heading matches (via `consolidated\s+balance\s+sheets?` which already has `s?`). The trailing continuation window (5 pages) then absorbs all subsequent pages into the balance_sheet section.
+
+2. **Scanned path (allScannedFallback in route.ts):** The recent `identifyStatementTypeFromImage()` fix correctly handles scanned pages but only fires when ALL pages are scanned. Digital docs with misclassified pages never enter this path.
+
+### Review of Proposed Design (SpreadX_ReqF_v1.1)
+
+The Req F document proposes a **two-path Statement Type Classifier (STC)** with a 60+ signal corpus-derived regex dictionary and a vision-based classification for scanned pages. Key elements:
+
+| Component | Proposal | Assessment |
+|-----------|----------|------------|
+| **New file `lib/pdf/statement-classifier.ts`** | 60+ regex patterns (STATEMENT_SIGNALS) replacing SECTION_PATTERNS; `classifyStatementType()` for digital; `classifyScannedPages()` for vision | **Adopt.** The signal dictionary is thoroughly corpus-tested against all 19 demo documents. The `statements?` plural fix is the critical change. |
+| **Stage 2b (digital classification)** | Run `classifyStatementType()` on each digital/hybrid page after Stage 2, before page filtering | **Adopt.** Separating classification from filtering is cleaner. Assigns `section_type` to each page object for downstream use. |
+| **Stage 4b (scanned classification)** | Vision-based `classifyScannedPages()` after template classification | **Adopt with modification.** We already have `identifyStatementTypeFromImage()` in extract-vision.ts from the recent fix. Req F proposes a richer schema (confidence, heading_verbatim, scope, is_continuation). Consolidate by replacing the simple function with the richer Req F version in statement-classifier.ts. Remove duplicate from extract-vision.ts. |
+| **Updated page-filter.ts** | Remove SECTION_PATTERNS; `filterFinancialPages()` becomes pure grouping; boundary-aware continuation (window 8, stops at next heading) | **Adopt.** The boundary-aware continuation is the key fix — prevents balance_sheet from absorbing subsequent statement pages. |
+| **Schema changes (4 new columns)** | `secondary_section_type`, `classification_confidence`, `heading_verbatim`, `statement_scope` on `document_pages` | **Adopt partially.** `sectionType` column already exists in schema. Add only the 3 truly new columns: `secondary_section_type`, `classification_confidence`, `heading_verbatim`. `statement_scope` already exists as `statementScope` on extracted_rows. |
+| **V13 validation check** | "All four statement types present" | **Adopt.** Useful as a warning-level check to flag extraction quality issues. |
+| **allScannedFallback removal** | Req F replaces the fallback with Stage 4b structured classification | **Adopt.** The current fallback (winner-takes-all, then identify-then-extract) was an interim fix. Stage 4b is the proper solution. Remove allScannedFallback logic and the `identifyStatementTypeFromImage()` interim function from extract-vision.ts. |
+
+### Recommendation
+
+**Adopt the Req F design in full** with the following modifications:
+
+1. **Consolidate scanned path:** Replace both the current `identifyStatementTypeFromImage()` (extract-vision.ts) and the proposed `classifyScannedPages()` into a single function in statement-classifier.ts. Reuse existing `rasterizePages()` plural function.
+2. **Schema migration:** Only add 3 new columns (not 4) since `sectionType` already exists. Update the existing `sectionType` column to be populated by Stage 2b/4b instead of the current default 'unclassified'.
+3. **Test migration:** Update `__tests__/unit/page-filter.test.ts` (23 existing tests) to use STATEMENT_SIGNALS instead of SECTION_PATTERNS. Add new tests for the boundary-aware continuation and plural heading matching.
+4. **Backward compatibility:** The `ClassifiedPage` interface needs a `section_type` field added. This is a local type — no external API changes.
+
+### Implementation Plan
+
+| # | Task | File(s) | Dependencies |
+|---|------|---------|--------------|
+| 9.1 | Create `statement-classifier.ts` with full STATEMENT_SIGNALS dictionary, `classifyStatementType()`, and `classifyScannedPages()` | `lib/pdf/statement-classifier.ts` (new) | None |
+| 9.2 | Extend `ClassifiedPage` interface with `section_type`, `secondary_section_type`, `imageBuffer` fields | `lib/pdf/page-classifier.ts` | 9.1 |
+| 9.3 | Add 3 new columns to `document_pages` table: `secondary_section_type`, `classification_confidence`, `heading_verbatim` | `lib/db/schema.ts` | None |
+| 9.4 | Run DB migration | `drizzle-kit generate && migrate` | 9.3 |
+| 9.5 | Replace `SECTION_PATTERNS` and `filterFinancialPages()` in page-filter.ts with grouping-only version and boundary-aware continuation | `lib/pdf/page-filter.ts` | 9.1, 9.2 |
+| 9.6 | Add Stage 2b (digital classification) to pipeline — after Stage 2, before Stage 3 | `app/api/documents/route.ts` | 9.1, 9.2, 9.4 |
+| 9.7 | Add Stage 4b (scanned classification via vision) to pipeline — after Stage 4, before Stage 5 | `app/api/documents/route.ts` | 9.1, 9.2, 9.4 |
+| 9.8 | Remove `allScannedFallback` logic and `identifyStatementTypeFromImage()` from extract-vision.ts and route.ts | `app/api/documents/route.ts`, `lib/claude/extract-vision.ts` | 9.6, 9.7 |
+| 9.9 | Add V13 validation check ("All four statement types present") | `lib/mapping/formula-validator.ts` | None |
+| 9.10 | Update unit tests for page-filter to use STATEMENT_SIGNALS; add plural heading tests | `__tests__/unit/page-filter.test.ts` | 9.1, 9.5 |
+| 9.11 | Add unit tests for statement-classifier (digital + scanned paths) | `__tests__/unit/statement-classifier.test.ts` (new) | 9.1 |
+| 9.12 | Delete and re-process Cash America and Freddie Mac through fixed pipeline | Manual verification | 9.6, 9.7, 9.8 |
+| 9.13 | Re-seed all 19 demo documents | `scripts/seed-demo-docs.ts` | 9.12 |
+| 9.14 | Verify Cash America: 4 distinct statement types across pages 1-4, V01 passes, V13 passes | Manual verification | 9.13 |
+| 9.15 | Run full test suite and deploy | `npm test` + `vercel --prod` | 9.14 |
+
+### Phase 9 — Testing
+
+#### Statement Classifier Unit Tests
+
+| # | Test | Expected Result |
+|---|------|-----------------|
+| T9.1 | `classifyStatementType("CONSOLIDATED STATEMENTS OF INCOME")` | Returns `income_statement` with confidence 1.0 |
+| T9.2 | `classifyStatementType("CONSOLIDATED BALANCE SHEETS")` | Returns `balance_sheet` with confidence 1.0 |
+| T9.3 | `classifyStatementType("CONSOLIDATED STATEMENTS OF CASH FLOWS")` | Returns `cash_flow` with confidence 1.0 |
+| T9.4 | `classifyStatementType("CONSOLIDATED STATEMENTS OF STOCKHOLDERS EQUITY")` | Returns `equity_statement` with confidence 1.0 |
+| T9.5 | `classifyStatementType("Statement of Profit and Loss")` | Returns `income_statement` (Ind AS T3 variant) |
+| T9.6 | `classifyStatementType("Profit and Loss Account")` | Returns `income_statement` (UK T4/T5 variant) |
+| T9.7 | `classifyStatementType("Statement of Financial Position")` | Returns `balance_sheet` (IFRS variant) |
+| T9.8 | `classifyStatementType("Chairman's Report")` | Returns `other` |
+| T9.9 | All 19 demo document page headings match expected statement types | Full corpus validation |
+
+#### Page Filter Tests (Updated)
+
+| # | Test | Expected Result |
+|---|------|-----------------|
+| T9.10 | Boundary-aware continuation stops at next heading | Page with `section_type=cash_flow` stops expansion of previous `balance_sheet` section |
+| T9.11 | Continuation window max 8 pages | Pages beyond offset 8 are not included |
+| T9.12 | filterFinancialPages groups by pre-assigned section_type | No regex re-run; pure grouping |
+
+#### Pipeline Verification
+
+| # | Test | Expected Result |
+|---|------|-----------------|
+| T9.13 | **Cash America 2007**: Page 1 → balance_sheet, Page 2 → income_statement, Page 3 → equity_statement, Page 4 → cash_flow | 4 distinct statement types |
+| T9.14 | **Cash America 2007**: V01 Balance Sheet Identity | PASS (was failing at 35.44% diff) |
+| T9.15 | **Cash America 2007**: Income Statement tab has > 0 rows with `total_revenue`, `net_income` | Non-empty IS tab |
+| T9.16 | **Freddie Mac 2023**: Page 2 → income_statement (was balance_sheet) | Correct IS detection |
+| T9.17 | **Freddie Mac 2023**: Page 3 → cash_flow (was balance_sheet) | Correct CF detection |
+| T9.18 | **V13 check**: Cash America returns PASS for "All four statements present" | V13 passes |
+| T9.19 | **All 19 docs**: No regression — all previously passing documents still process correctly | Full re-seed verification |
+| T9.20 | Run `npm run build` | Zero TypeScript errors |
+
+---
+
+*Financial SpreadX - Demo Design v2.1 - Implementation Plan with Testing (Updated 2026-04-03 with Phase 9)*
