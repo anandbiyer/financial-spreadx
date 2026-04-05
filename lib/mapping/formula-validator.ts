@@ -188,16 +188,26 @@ export function runAllValidations(
   });
 
   // V13: All four statement types present (severity: warn)
-  const presentTypes = new Set(Object.values(map).map((v: any) => v?.statementType).filter(Boolean));
+  // Check for indicator fields that imply each statement type was extracted
+  const stTypeIndicators: Record<string, string[]> = {
+    balance_sheet:    ['total_assets', 'total_liabilities', 'total_equity', 'current_assets', 'non_current_assets'],
+    income_statement: ['total_revenue', 'net_income', 'profit_before_tax', 'total_income', 'total_expenses'],
+    cash_flow:        ['cash_from_operations', 'cash_from_investing', 'cash_from_financing', 'cash_end'],
+    equity_statement: ['opening_equity', 'closing_equity', 'total_equity', 'dividends_paid', 'partners_capital'],
+  };
+  const presentTypes: string[] = [];
+  for (const [stType, fields] of Object.entries(stTypeIndicators)) {
+    if (fields.some(f => get(map, f) !== null)) presentTypes.push(stType);
+  }
   const requiredTypes = ['balance_sheet', 'income_statement', 'cash_flow', 'equity_statement'];
-  const missingTypes = requiredTypes.filter(t => !presentTypes.has(t));
+  const missingTypes = requiredTypes.filter(t => !presentTypes.includes(t));
   checks.push({
     checkId: 'V13',
     name: 'All four statement types present',
     formula: 'BS ∩ IS ∩ CF ∩ EQ = 4',
     tolerance: 0,
     status: missingTypes.length === 0 ? 'passed' : 'failed',
-    lhs: requiredTypes.length - missingTypes.length,
+    lhs: presentTypes.length,
     rhs: requiredTypes.length,
     diffPct: missingTypes.length > 0 ? (missingTypes.length / requiredTypes.length) * 100 : 0,
     reason: missingTypes.length > 0 ? `Missing: ${missingTypes.join(', ')}` : undefined,
