@@ -207,9 +207,9 @@ describe('T8.17–T8.19 — Cross-document verification', () => {
     const report = await getJson(
       `/api/documents/${hdfcCredila.id}/validation`,
     );
-    // Validation report should exist with V01-V12 checks
+    // Validation report should exist with V01-V13 checks
     expect(report.checks).toBeDefined();
-    expect(report.checks.length).toBe(12);
+    expect(report.checks.length).toBe(13);
   });
 
   it('T8.18 — filter by needs_review status returns flagged documents', async () => {
