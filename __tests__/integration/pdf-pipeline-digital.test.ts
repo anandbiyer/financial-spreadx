@@ -3,6 +3,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import { classifyPdfPages, summarizeClassifications } from '../../lib/pdf/page-classifier';
+import { classifyStatementType } from '../../lib/pdf/statement-classifier';
 import { filterFinancialPages } from '../../lib/pdf/page-filter';
 import { rasterizePage } from '../../lib/pdf/page-rasterizer';
 
@@ -46,6 +47,12 @@ describe('T2.1 — Page classifier on DIGITAL (LT Finance 2019)', () => {
 describe('T2.4 — Page filter on DIGITAL (LT Finance 2019)', () => {
   it('detects at least income_statement and balance_sheet', async () => {
     const pages = await classifyPdfPages(pdfBuffer);
+    // Stage 2b: classify statement types before filtering
+    for (const page of pages) {
+      if (page.classification === 'scanned') continue;
+      const hits = classifyStatementType(page.textContent ?? '');
+      page.section_type = hits[0].statementType;
+    }
     const result = filterFinancialPages(pages);
 
     console.log('DIGITAL filter result:', {

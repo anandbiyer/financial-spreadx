@@ -3,6 +3,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import { classifyPdfPages, summarizeClassifications } from '../../lib/pdf/page-classifier';
+import { classifyStatementType } from '../../lib/pdf/statement-classifier';
 import { filterFinancialPages } from '../../lib/pdf/page-filter';
 import { rasterizePage } from '../../lib/pdf/page-rasterizer';
 
@@ -46,6 +47,12 @@ describe('T2.2 — Page classifier on SCANNED (Sun Hung Kai 2024)', () => {
 describe('T2.5 — Page filter on SCANNED (Sun Hung Kai 2024)', () => {
   it('runs filter without error; scanned pages have no text to match headings', async () => {
     const pages = await classifyPdfPages(pdfBuffer);
+    // Stage 2b: classify digital/hybrid pages (scanned pages skip)
+    for (const page of pages) {
+      if (page.classification === 'scanned') continue;
+      const hits = classifyStatementType(page.textContent ?? '');
+      page.section_type = hits[0].statementType;
+    }
     const result = filterFinancialPages(pages);
 
     console.log('SCANNED filter result:', {
