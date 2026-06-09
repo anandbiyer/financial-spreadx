@@ -1,0 +1,46 @@
+# Secrets
+.env
+.env.local
+.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Test fixtures (large PDFs — not needed in production)
+tests/fixtures/
+
+# Generated files
+*.xlsx
+# ...but keep the CoA reference workbook (source of truth for Stage 11 seeding)
+!BS_PL_Line_Items_V1.xlsx
+
+# Spreading DB + logs + scratch output
+*.db
+*.bak
+*.log
+output.json
+payload.json
+
+# Sample annual-report corpus (real filings + generated workbooks) — local only
+Financials_Provided/
+
+# Virtualenvs
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Financial SpreadX — Spreading & COA Mapping: Requirements Document</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Georgia,serif;font-size:14px;color:#1a1917;background:#fff;padding:40px;max-width:960px;margin:0 auto;line-height:1.7}
+.doc-header{border-bottom:3px solid #1a1917;padding-bottom:20px;margin-bottom:30px}
+.doc-label{font-family:system-ui,sans-serif;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#8a8880;margin-bottom:8px}
+.doc-title{font-size:28px;font-weight:700;color:#1a1917;margin-bottom:6px;line-height:1.2}
+.doc-sub{font-size:14px;color:#4a4844;margin-top:8px;line-height:1.6}
+.doc-meta{display:flex;gap:24px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid #e4e2dc}
+.doc-meta span{font-family:system-ui,sans-serif;font-size:11.5px;color:#8a8880}
+.doc-meta strong{color:#1a1917}
+.toc{background:#f4f3f0;border:1px solid #e4e2dc;border-radius:6px;padding:20px 24px;margin-bottom:32px}
+.toc h3{font-family:system-ui,sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8a8880;margin-bottom:12px}
+.toc ol{padding-left:20px}
+.toc li{margin-bottom:5px}
+.toc a{color:#1d4ed8;font-family:system-ui,sans-serif;font-size:13px;text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.toc li.sub{margin-left:16px}
+.section{margin-bottom:40px;padding-bottom:20px;border-bottom:1px solid #e4e2dc}
+.section:last-child{border:none}
+.section-label{font-family:system-ui,sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#1d4ed8;margin-bottom:6px}
+h2{font-size:20px;font-weight:700;color:#1a1917;margin-bottom:14px}
+h3{font-size:16px;font-weight:600;color:#1a1917;margin:20px 0 10px}
+h4{font-size:14px;font-weight:600;color:#1a1917;margin:16px 0 8px;font-family:system-ui,sans-serif}
+p{margin-bottom:12px;color:#2d2c2a}
+ul,ol{padding-left:22px;margin-bottom:12px}
+li{margin-bottom:5px;color:#2d2c2a}
+code{font-family:monospace;font-size:12.5px;background:#f4f3f0;padding:1px 5px;border-radius:3px;color:#1a1917}
+pre{background:#0f1117;color:#e5e7eb;font-family:monospace;font-size:12px;padding:16px;border-radius:6px;overflow-x:auto;margin-bottom:14px;line-height:1.6}
+pre code{background:none;padding:0;color:inherit}
+.callout{border-left:4px solid #1d4ed8;background:#eff6ff;padding:12px 16px;border-radius:0 6px 6px 0;margin-bottom:14px;font-size:13.5px}
+.callout.amber{border-color:#d97706;background:#fefce8}
+.callout.green{border-color:#15803d;background:#f0fdf4}
+.callout.red{border-color:#b91c1c;background:#fef2f2}
+table{width:100%;border-collapse:collapse;margin-bottom:16px;font-family:system-ui,sans-serif;font-size:12.5px}
+th{padding:8px 12px;text-align:left;background:#f4f3f0;border:1px solid #e4e2dc;font-weight:600;color:#1a1917;font-size:11.5px}
+td{padding:7px 12px;border:1px solid #e4e2dc;vertical-align:top;color:#2d2c2a}
+tr:nth-child(even) td{background:#fafaf9}
+.req-id{font-family:monospace;font-size:11px;color:#1d4ed8;font-weight:600;white-space:nowrap}
+.priority{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10.5px;font-weight:600;font-family:system-ui,sans-serif}
+.p-must{background:#fee2e2;color:#991b1b}
+.p-should{background:#fef3c7;color:#92400e}
+.p-nice{background:#f1f5f9;color:#475569}
+.badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10.5px;font-weight:500;font-family:system-ui,sans-serif}
+.b-new{background:#dbeafe;color:#1e40af}
+.b-ext{background:#dcfce7;color:#166534}
+hr{border:none;border-top:1px solid #e4e2dc;margin:24px 0}
+.file-ref{font-family:monospace;font-size:11.5px;background:#f4f3f0;padding:2px 6px;border-radius:3px;color:#1a1917}
+</style>
+</head>
+<body>
+
+<div class="doc-header">
+  <div class="doc-label">Requirements Document &middot; Version 1.0 &middot; For Claude Code</div>
+  <h1 class="doc-title">Financial SpreadX<br>Spreading &amp; COA Mapping Engine</h1>
+  <p class="doc-sub">Requirements for extending the demo build with financial spreading functionality: Chart of Accounts (COA) mapping using a standardised target CoA, an unmapped item resolution workflow, and a self-improving learning loop that stores manual analyst mappings and uses them in future runs with explicit attribution.</p>
+  <div class="doc-meta">
+    <span><strong>Base system</strong> Financial SpreadX Demo v1.1</span>
+    <span><strong>New modules</strong> COA Mapper, Spread Engine, Unmapped Resolver, Learning Store</span>
+    <span><strong>New tables</strong> 4 (spread_results, coa_mappings, unmapped_items, learned_mappings)</span>
+    <span><strong>New screens</strong> 2 (Spread Review, Unmapped Resolver)</span>
+    <span><strong>Reference files</strong> BS_PL_Line_Items_V1.xlsx &middot; Prompt_for_CoA_Mapping_V1.docx</span>
+  </div>
+</div>
+
+<div class="toc">
+  <h3>Contents</h3>
+  <ol>
+    <li><a href="#context">Section 01 &mdash; Business Context &amp; Objectives</a></li>
+    <li><a href="#overview">Section 02 &mdash; Feature Overview &amp; How It Fits Into the Demo</a></li>
+    <li><a href="#coa_ref">Section 03 &mdash; COA Reference: Target Chart of Accounts</a></li>
+    <li><a href="#spreading">Section 04 &mdash; Spreading Engine: Architecture &amp; Pipeline Stage</a></li>
+    <li><a href="#mapping">Section 05 &mdash; COA Mapping Module: Process, Confidence &amp; Validation</a></li>
+    <li><a href="#unmapped">Section 06 &mdash; Unmapped Item Resolution Workflow</a></li>
+    <li><a href="#learning">Section 07 &mdash; Learning Loop: Storing, Retrieving &amp; Attributing Manual Mappings</a></li>
+    <li><a href="#datamodel">Section 08 &mdash; Data Model: New Tables &amp; Columns</a></li>
+    <li><a href="#api">Section 09 &mdash; API Routes</a></li>
+    <li><a href="#screens">Section 10 &mdash; Frontend: New Screens &amp; Changes to Existing Screens</a></li>
+    <li><a href="#requirements">Section 11 &mdash; Functional Requirements Catalogue</a></li>
+    <li><a href="#todo">Section 12 &mdash; Development Todo List (Claude Code Checkpoints)</a></li>
+    <li><a href="#prompts">Section 13 &mdash; Claude Code Session Prompts</a></li>
+  </ol>
+</div>
+
+<!-- ═══════════════ SECTION 01 ═══════════════ -->
+<div class="section" id="context">
+  <div class="section-label">Section 01</div>
+  <h2>Business Context &amp; Objectives</h2>
+
+  <p>Financial spreading is the process by which a bank transforms a borrower&rsquo;s raw financial statements into a standardised, comparable format that can be used for credit evaluation, financial ratio generation, and risk scoring. The current Financial SpreadX demo extracts and normalises financial data from annual report PDFs. This requirements document defines the next layer: mapping those extracted line items into a predefined standardised Chart of Accounts (CoA) and spreading them into an output that a bank&rsquo;s credit system can directly consume.</p>
+
+  <h3>Why this matters for credit analysis</h3>
+  <ul>
+    <li><strong>Comparability:</strong> Different companies use entirely different labels for the same economic item (&ldquo;Turnover&rdquo;, &ldquo;Net Sales&rdquo;, &ldquo;Revenue from Operations&rdquo; all mean the same thing). The CoA normalises this.</li>
+    <li><strong>Ratio generation:</strong> Financial ratios (DSCR, Current Ratio, Debt/EBITDA) require line items to be in the correct CoA bucket. A wrong mapping produces a wrong ratio.</li>
+    <li><strong>Auditability:</strong> Every mapping decision must carry a probability score and a reason. The bank&rsquo;s credit officer must be able to challenge any mapping.</li>
+    <li><strong>Consistency:</strong> The same line item must always map to the same CoA entry across different companies, analysts, and time periods.</li>
+  </ul>
+
+  <div class="callout green">
+    <strong>Source authority.</strong> The target CoA is defined in <span class="file-ref">BS_PL_Line_Items_V1.xlsx</span> (two sheets: BS Definitions, P&amp;L Definitions). The mapping logic and quality standards are defined in <span class="file-ref">Prompt_for_CoA_Mapping_V1.docx</span>. Both files are the single source of truth for this feature. Do not deviate from them.
+  </div>
+</div>
+
+<!-- ═══════════════ SECTION 02 ═══════════════ -->
+<div class="section" id="overview">
+  <div class="section-label">Section 02</div>
+  <h2>Feature Overview &amp; How It Fits Into the Demo</h2>
+
+  <p>The spreading and COA mapping feature sits as a new Stage 11 after the existing 10-stage extraction pipeline. Once rows have been extracted, mapped to canonical fields, and validated (Stages 1&ndash;10), they are now also mapped to the standardised CoA and spread into the bank&rsquo;s output format.</p>
+
+  <h3>Extended pipeline: 11 stages</h3>
+  <table>
+    <thead><tr><th>Stage</th><th>Name</th><th>Type</th><th>New?</th></tr></thead>
+    <tbody>
+      <tr><td>01&ndash;10</td><td>Existing pipeline (PDF → extract → map → validate)</td><td>Various</td><td>Unchanged</td></tr>
+      <tr><td>11</td><td><strong>COA Mapping &amp; Spreading</strong> — map each canonical row to a CoA ID, generate probability score and rationale, run balance checks, flag unmapped items</td><td>Claude AI + Rule-based</td><td><span class="badge b-new">New</span></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Three sub-features</h3>
+  <table>
+    <thead><tr><th>#</th><th>Sub-feature</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td>A</td><td><strong>COA Mapping Engine</strong></td><td>Maps each extracted line item to a standardised CoA entry (BS-001&ndash;BS-116 or PL-001&ndash;PL-068) using Claude with the mapping process from the Word document. Assigns a probability score (0&ndash;1) and a detailed rationale string.</td></tr>
+      <tr><td>B</td><td><strong>Unmapped Item Resolution</strong></td><td>Items that cannot be mapped with confidence &ge;0.60 are placed in an &ldquo;unmapped&rdquo; bucket. A new UI screen shows these to the analyst with Claude-generated mapping suggestions ranked by probability. The analyst selects the correct CoA entry.</td></tr>
+      <tr><td>C</td><td><strong>Learning Loop</strong></td><td>Every manual mapping made by an analyst is stored in a <code>learned_mappings</code> table. On future runs, before calling Claude, the system checks this table for a learned mapping. If found, it is applied automatically with an attribution message: &ldquo;Mapped using analyst learning from [date], [document].&rdquo; Claude is only called if no learned mapping exists.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════ SECTION 03 ═══════════════ -->
+<div class="section" id="coa_ref">
+  <div class="section-label">Section 03</div>
+  <h2>COA Reference: Target Chart of Accounts</h2>
+
+  <p>The target CoA is fully defined in <span class="file-ref">BS_PL_Line_Items_V1.xlsx</span>. It must be seeded into the database as a read-only reference table (<code>coa_reference</code>) on first run. Claude Code must not modify the CoA entries &mdash; they are provided by the bank and are fixed.</p>
+
+  <h3>Balance Sheet CoA (BS-001 to BS-116)</h3>
+  <table>
+    <thead><tr><th>Broad Category</th><th>CoA IDs</th><th>Count</th><th>Key entries</th></tr></thead>
+    <tbody>
+      <tr><td>Current Assets</td><td>BS-001&ndash;BS-026</td><td>26</td><td>Cash, Time Deposits, Marketable Securities, Receivables (trade, related party, other), Tax assets, Inventory (raw materials, WIP, finished goods), Contract assets, Prepayments, Derivatives</td></tr>
+      <tr><td>Non-Current Assets</td><td>BS-027&ndash;BS-058</td><td>32</td><td>PP&amp;E (land, buildings, machinery, leases, accumulated depreciation), LT receivables, Investments (subsidiaries, restricted cash, other), Intangibles (goodwill, other, amortisation), Deferred tax</td></tr>
+      <tr><td>Current Liabilities</td><td>BS-059&ndash;BS-092</td><td>34</td><td>Overdrafts, ST bank loans, CPLTD (bank, secured, unsecured, lease), Trade payables, Related-party payables, Accruals (wages, bonuses, interest, dividends), Tax payables, Contract liabilities, Derivatives</td></tr>
+      <tr><td>Non-Current Liabilities</td><td>BS-093&ndash;BS-100</td><td>8</td><td>LT bank loans, LT bonds, Finance/operating lease liabilities, Pension obligations, Deferred tax liability, Subordinated debt, Minority interest (liability)</td></tr>
+      <tr><td>Equity</td><td>BS-101&ndash;BS-116</td><td>16</td><td>Share capital (preferred, common, paid-in), Reserves (capital, revaluation, hedging, other), Currency translation, Retained earnings, Accumulated OCI, Minority interest (equity), Hybrid instruments</td></tr>
+    </tbody>
+  </table>
+
+  <h3>P&amp;L CoA (PL-001 to PL-068)</h3>
+  <table>
+    <thead><tr><th>Broad Category</th><th>CoA IDs</th><th>Count</th><th>Key entries</th></tr></thead>
+    <tbody>
+      <tr><td>Revenue</td><td>PL-001&ndash;PL-007</td><td>7</td><td>Gross Sales, Returns &amp; Allowances, Discounts, Net Revenue, COGS (direct costs, depreciation in COGS), Gross Profit</td></tr>
+      <tr><td>Operating Expenses</td><td>PL-008&ndash;PL-024</td><td>17</td><td>Selling, G&amp;A, Personnel, Officers&rsquo; compensation, Share option costs, Lease/rent, D&amp;A, Impairment, R&amp;D, Bad debt expense, Other operating</td></tr>
+      <tr><td>Non-Operating Items</td><td>PL-025&ndash;PL-039</td><td>15</td><td>Interest expense/income, Deferred interest, Capitalised interest, Income from subs/JVs, Non-cash income/expense, Gains/losses on derivatives and assets, Other income/expense, Commitment fees</td></tr>
+      <tr><td>Tax</td><td>PL-040&ndash;PL-043</td><td>4</td><td>PBT, Current income tax, Deferred income tax, Tax credits</td></tr>
+      <tr><td>Post-Tax &amp; OCI</td><td>PL-044&ndash;PL-053</td><td>10</td><td>Minority interest, Extraordinary items, After-tax income/expense, Unrealised gains on securities, Currency translation OCI, Pension remeasurement, Hedging reserves</td></tr>
+      <tr><td>Equity Movements</td><td>PL-054&ndash;PL-060</td><td>7</td><td>Adjustments to retained earnings, Stock dividends, Preferred/common dividends, Withdrawals, Prior period adjustments</td></tr>
+      <tr><td>Debt Service</td><td>PL-061&ndash;PL-068</td><td>8</td><td>Existing debt service (ST, LT, other), Proposed debt service (ST, LT, other), Total DSCR inputs</td></tr>
+    </tbody>
+  </table>
+
+  <h3>CoA reference table schema</h3>
+  <pre><code>// lib/db/schema.ts — seed once from BS_PL_Line_Items_V1.xlsx, never modified by app
+export const coaReference = pgTable('coa_reference', {
+  coa_id:           text('coa_id').primaryKey(),         // e.g. "BS-001", "PL-025"
+  line_item_name:   text('line_item_name').notNull(),    // e.g. "Cash"
+  statement:        text('statement').notNull(),          // "Balance Sheet" | "P&L"
+  broad_category:   text('broad_category').notNull(),    // e.g. "Current Assets"
+  sub_category:     text('sub_category').notNull(),      // e.g. "Cash & Cash Equivalents"
+  definition:       text('definition').notNull(),        // Full definition text
+  spreading_guidance: text('spreading_guidance').notNull(),
+  sign_convention:  text('sign_convention').default('positive'), // 'positive' | 'negative' | 'contra'
+  is_subtotal:      boolean('is_subtotal').default(false),
+  is_memo_item:     boolean('is_memo_item').default(false),
+});</code></pre>
+
+  <div class="callout amber">
+    <strong>Sign conventions from the CoA.</strong> Several CoA entries are explicitly contra-assets (entered as negative numbers): BS-005 Bad Debt Reserve, BS-037 Accum Deprec &amp; Impairment, BS-054 Accum Amort &amp; Impairment. P&amp;L expense items use negative sign conventions: PL-002 Returns, PL-003 Discounts, PL-025 Interest Expense, PL-041 Income Tax. The <code>sign_convention</code> field must be set correctly during seeding so the spreading engine can auto-apply sign reversals where needed.
+  </div>
+</div>
+
+<!-- ═══════════════ SECTION 04 ═══════════════ -->
+<div class="section" id="spreading">
+  <div class="section-label">Section 04</div>
+  <h2>Spreading Engine: Architecture &amp; Pipeline Stage</h2>
+
+  <h3>Where Stage 11 runs</h3>
+  <p>Stage 11 is appended to the existing synchronous pipeline in <span class="file-ref">app/api/documents/route.ts</span> after Stage 10 (validation). It receives the full set of <code>mapped_rows</code> for the document and produces a <code>spread_result</code> record with one <code>coa_mapping</code> entry per row.</p>
+
+  <pre><code>// app/api/documents/route.ts — Stage 11 addition
+// (runs after Stage 10 validation)
+
+// Stage 11: COA Mapping & Spreading
+await db.update(documents).set({ status: 'spreading' }).where(eq(documents.id, doc.id));
+
+const mappedRows = await getMappedRowsByDocument(doc.id);
+const coaEntries = await getAllCoaReference();  // full reference table
+
+const spreadResult = await runCOAMappingStage({
+  documentId: doc.id,
+  mappedRows,
+  coaEntries,
+  templateType: classification.template_type,
+  statementScope: classification.statement_scopes,
+});
+
+// spreadResult contains:
+// - coaMappings[]: one per row, with coa_id, confidence, rationale, mapping_source
+// - unmappedItems[]: rows below confidence threshold
+// - balanceCheck: { totalAssets, totalLiabilitiesEquity, isBalanced, difference }
+// - subtotalChecks[]: each subtotal verified
+
+await db.insert(spreadResults).values(spreadResult.summary);
+await db.insert(coaMappings).values(spreadResult.coaMappings);
+if (spreadResult.unmappedItems.length > 0) {
+  await db.insert(unmappedItems).values(spreadResult.unmappedItems);
+  await db.update(documents).set({ status: 'has_unmapped', unmapped_count: spreadResult.unmappedItems.length });
+} else {
+  await db.update(documents).set({ status: 'spread_complete' });
+}</code></pre>
+
+  <h3>COA Mapping Engine entry point — lib/spreading/coa-mapper.ts</h3>
+  <pre><code>// lib/spreading/coa-mapper.ts
+export async function runCOAMappingStage(input: {
+  documentId: string;
+  mappedRows: MappedRow[];
+  coaEntries: CoaReference[];
+  templateType: string;
+  statementScope: string[];
+}): Promise&lt;SpreadResult&gt; {
+
+  const coaMappings: CoaMappingRecord[] = [];
+  const unmappedItems: UnmappedItem[] = [];
+
+  for (const row of input.mappedRows) {
+    // Step 1: Check learned mappings first (no Claude call)
+    const learned = await findLearnedMapping(row.canonical_field, row.raw_label, input.templateType);
+    if (learned) {
+      coaMappings.push({
+        document_id: input.documentId,
+        mapped_row_id: row.id,
+        coa_id: learned.coa_id,
+        confidence: learned.learned_confidence,
+        rationale: learned.rationale,
+        mapping_source: 'learned',
+        learned_mapping_id: learned.id,
+        learned_from_doc: learned.source_document,
+        learned_at: learned.created_at,
+      });
+      continue;
+    }
+
+    // Step 2: Claude-based mapping
+    const result = await mapRowToCoaWithClaude(row, input.coaEntries, input.templateType);
+
+    if (result.confidence >= 0.60) {
+      coaMappings.push({
+        ...result,
+        document_id: input.documentId,
+        mapped_row_id: row.id,
+        mapping_source: 'claude',
+      });
+    } else {
+      // Below threshold — flag as unmapped
+      unmappedItems.push({
+        document_id: input.documentId,
+        mapped_row_id: row.id,
+        raw_label: row.raw_label,
+        canonical_field: row.canonical_field,
+        statement_type: row.statement_type,
+        claude_suggestions: result.candidates,  // top 3 suggestions
+        status: 'pending',
+      });
+    }
+  }
+
+  // Run balance sheet check
+  const balanceCheck = checkBalanceSheetIdentity(coaMappings, input.coaEntries);
+  const subtotalChecks = verifySubtotals(coaMappings, input.coaEntries);
+
+  return { coaMappings, unmappedItems, balanceCheck, subtotalChecks };
+}</code></pre>
+
+  <h3>Confidence thresholds</h3>
+  <table>
+    <thead><tr><th>Threshold</th><th>Action</th><th>UI treatment</th></tr></thead>
+    <tbody>
+      <tr><td>&ge; 0.90</td><td>Auto-accepted. No analyst review required.</td><td>Green confidence bar. &ldquo;Auto-mapped&rdquo; badge.</td></tr>
+      <tr><td>0.75 &ndash; 0.89</td><td>Mapped but flagged for optional review.</td><td>Amber confidence bar. &ldquo;Review recommended&rdquo; badge.</td></tr>
+      <tr><td>0.60 &ndash; 0.74</td><td>Mapped with warning. Analyst should confirm.</td><td>Orange confidence bar. &ldquo;Confirm required&rdquo; badge.</td></tr>
+      <tr><td>&lt; 0.60</td><td>Unmapped. Sent to Unmapped Resolver screen.</td><td>Red. Row does not appear in spread output until resolved.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════ SECTION 05 ═══════════════ -->
+<div class="section" id="mapping">
+  <div class="section-label">Section 05</div>
+  <h2>COA Mapping Module: Process, Confidence &amp; Validation</h2>
+
+  <h3>Mapping process (from Prompt_for_CoA_Mapping_V1.docx)</h3>
+  <p>The mapping logic is defined in the Word document and must be implemented exactly as specified. The following steps are performed for every row:</p>
+  <ol>
+    <li><strong>CoA comprehension:</strong> Load the target CoA and understand the definition and spreading guidance for every entry.</li>
+    <li><strong>Financial statement classification gating:</strong> A Balance Sheet row must map to a BS-xxx CoA entry only. A P&amp;L row must map to a PL-xxx CoA entry only. Cross-statement mapping is a hard error.</li>
+    <li><strong>Economic substance analysis:</strong> Analyse the company line item based on its economic substance, accounting treatment, recognition basis, measurement basis, and IFRS/GAAP meaning. Do not rely solely on the label text.</li>
+    <li><strong>Candidate evaluation:</strong> Compare the row against all valid CoA candidates on four dimensions: semantic similarity, accounting similarity, reporting similarity, and regulatory similarity.</li>
+    <li><strong>Best match selection:</strong> Select the best match based on accounting meaning, reporting treatment, and financial statement classification alignment &mdash; not textual similarity alone.</li>
+    <li><strong>Ambiguity penalisation:</strong> Penalise confidence score for: multiple valid CoA targets, missing definitions, industry-specific terminology, parent-child account conflicts, and aggregated line items.</li>
+    <li><strong>Rationale generation:</strong> Write a detailed rationale string explaining exactly why the mapping is correct. If ambiguity exists, explain it clearly.</li>
+    <li><strong>Balance sheet identity check:</strong> After all rows are mapped, verify Total Assets = Total Liabilities + Total Equity. Report discrepancies with the contributing line items.</li>
+    <li><strong>Subtotal consistency check:</strong> Verify that grouped CoA subtotals (e.g., Total Current Assets, Gross Profit, Total Operating Expenses) are arithmetically consistent.</li>
+  </ol>
+
+  <h3>Claude prompt for COA mapping — lib/spreading/map-row-to-coa.ts</h3>
+  <pre><code>// lib/spreading/map-row-to-coa.ts
+export async function mapRowToCoaWithClaude(
+  row: MappedRow,
+  coaEntries: CoaReference[],
+  templateType: string
+): Promise&lt;CoaMappingResult&gt; {
+
+  const relevantCoa = coaEntries.filter(
+    c => c.statement === statementTypeToCoaStatement(row.statement_type)
+  );
+
+  const { object } = await generateObject({
+    model: anthropic('claude-sonnet-4-5'),
+    schema: z.object({
+      coa_id:      z.string().regex(/^(BS|PL)-\d{3}$/),
+      confidence:  z.number().min(0).max(1),
+      rationale:   z.string().min(50),
+      ambiguities: z.array(z.string()),
+      candidates:  z.array(z.object({
+        coa_id:    z.string(),
+        score:     z.number(),
+        reason:    z.string(),
+      })).max(3),
+    }),
+    system: `You are an expert Chartered Accountant, IFRS specialist, Banking Finance SME,
+and Chart of Accounts mapping expert. You map financial statement line items into a
+predefined standardised COA for a bank's credit evaluation system.
+Accuracy, explainability, consistency, and auditability are critical.
+Perform semantic accounting analysis — do not rely solely on keyword matching.
+The definition of each COA entry takes precedence over its title.`,
+    prompt: `Map the following financial line item to the standardised COA.
+
+COMPANY LINE ITEM:
+- Raw label: "${row.raw_label}"
+- Canonical field: "${row.canonical_field}"
+- Statement type: ${row.statement_type}
+- Statement scope: ${row.statement_scope}
+- Template type: ${templateType}
+- Values: ${JSON.stringify(row.canonical_values)}
+
+TARGET COA ENTRIES (${relevantCoa.length} candidates, same statement only):
+${relevantCoa.map(c => \`\${c.coa_id}: \${c.line_item_name}
+  Definition: \${c.definition}
+  Spreading guidance: \${c.spreading_guidance}\`).join('\
+\n')}
+
+MAPPING RULES:
+1. This is a ${row.statement_type} item — map to ${statementTypeToCoaStatement(row.statement_type)} CoA entries only.
+2. Focus on economic substance, not label similarity.
+3. Penalise confidence if multiple CoA entries are plausible.
+4. If the item is aggregated (covers multiple CoA entries), map to the most appropriate parent.
+5. Provide top-3 candidates with individual scores.
+
+Return: best coa_id, confidence (0-1), detailed rationale, ambiguities list, top-3 candidates.`,
+  });
+
+  return object;
+}</code></pre>
+
+  <h3>Balance sheet validation — lib/spreading/balance-checks.ts</h3>
+  <pre><code>// lib/spreading/balance-checks.ts
+export function checkBalanceSheetIdentity(
+  mappings: CoaMappingRecord[],
+  coa: CoaReference[]
+): BalanceCheckResult {
+  const assetIds = coa.filter(c => ['Current Assets','Non-Current Assets'].includes(c.broad_category))
+                      .map(c => c.coa_id);
+  const liabIds  = coa.filter(c => ['Current Liabilities','Non-Current Liabilities'].includes(c.broad_category))
+                      .map(c => c.coa_id);
+  const equityIds = coa.filter(c => c.broad_category === 'Equity').map(c => c.coa_id);
+
+  const totalAssets = sumMappingValues(mappings.filter(m => assetIds.includes(m.coa_id)));
+  const totalLiabs  = sumMappingValues(mappings.filter(m => liabIds.includes(m.coa_id)));
+  const totalEquity = sumMappingValues(mappings.filter(m => equityIds.includes(m.coa_id)));
+  const diff = totalAssets - (totalLiabs + totalEquity);
+
+  return {
+    totalAssets,
+    totalLiabilities: totalLiabs,
+    totalEquity,
+    totalLiabilitiesAndEquity: totalLiabs + totalEquity,
+    difference: diff,
+    isBalanced: Math.abs(diff) / totalAssets < 0.001,  // 0.1% tolerance
+    imbalanceContributors: diff !== 0 ? identifyImbalanceContributors(mappings) : [],
+  };
+}</code></pre>
+</div>
+
+<!-- ═══════════════ SECTION 06 ═══════════════ -->
+<div class="section" id="unmapped">
+  <div class="section-label">Section 06</div>
+  <h2>Unmapped Item Resolution Workflow</h2>
+
+  <h3>What triggers the unmapped workflow</h3>
+  <p>Any row where Claude&rsquo;s best mapping confidence is below 0.60 is placed in the <code>unmapped_items</code> table with status <code>pending</code>. The document status is set to <code>has_unmapped</code> and the analyst is directed to the Unmapped Resolver screen before the spread output is finalised.</p>
+
+  <h3>Unmapped Resolver screen — /spread/[id]/unmapped</h3>
+  <p>This is a dedicated screen (not the existing Review Workbench) built specifically for resolving CoA mapping ambiguities. It shows only the unmapped items from the current document.</p>
+
+  <h4>Screen layout</h4>
+  <ul>
+    <li><strong>Left panel (40%):</strong> The unmapped item details — raw label, canonical field, statement type, values, and a short explanation of why Claude could not map it with confidence (&ldquo;Ambiguity: 3 valid CoA targets identified. Industry-specific terminology (NBFC).&rdquo;)</li>
+    <li><strong>Right panel (60%):</strong> The ranked CoA suggestions from Claude, displayed as selectable cards. Each card shows: CoA ID and name, Claude&rsquo;s match score for this suggestion, the CoA definition excerpt, and the rationale for this particular candidate match. The analyst clicks one card to select it and optionally edits the rationale before confirming.</li>
+    <li><strong>Bottom bar:</strong> &ldquo;N items remaining&rdquo; counter, Skip (defer for later), Confirm mapping button.</li>
+  </ul>
+
+  <h4>Suggestion generation</h4>
+  <p>The top-3 candidate CoA entries are generated by Claude during Stage 11 and stored in <code>unmapped_items.claude_suggestions</code> (JSONB). No additional Claude call is needed on the Unmapped Resolver screen &mdash; the suggestions are pre-computed. The screen renders them directly from the database.</p>
+
+  <h4>After resolution</h4>
+  <p>When the analyst confirms a mapping for an unmapped item:</p>
+  <ol>
+    <li>A new record is inserted into <code>coa_mappings</code> with <code>mapping_source = 'manual'</code> and the analyst-confirmed CoA ID.</li>
+    <li>The <code>unmapped_items</code> record is updated to <code>status = 'resolved'</code>.</li>
+    <li>A new record is inserted into <code>learned_mappings</code> (see Section 07).</li>
+    <li>When all unmapped items are resolved, the document status changes to <code>spread_complete</code>.</li>
+  </ol>
+
+  <h4>API route</h4>
+  <pre><code>POST /api/spread/[id]/resolve-unmapped
+Body: {
+  unmapped_item_id: string,
+  selected_coa_id:  string,
+  analyst_rationale: string,  // optional override to Claude's rationale
+  analyst_id: string,         // "AS" for demo (hardcoded)
+}</code></pre>
+</div>
+
+<!-- ═══════════════ SECTION 07 ═══════════════ -->
+<div class="section" id="learning">
+  <div class="section-label">Section 07</div>
+  <h2>Learning Loop: Storing, Retrieving &amp; Attributing Manual Mappings</h2>
+
+  <div class="callout">
+    <strong>Design principle:</strong> The system must improve with every run. Every manual analyst decision is an investment in accuracy. The learning loop captures these decisions in a structured way that can be retrieved for future documents without requiring Claude, while always crediting the source of the learned knowledge explicitly in the output.
+  </div>
+
+  <h3>What is stored when an analyst confirms a mapping</h3>
+  <pre><code>// lib/db/schema.ts — learned_mappings table
+export const learnedMappings = pgTable('learned_mappings', {
+  id:                   uuid('id').primaryKey().defaultRandom(),
+
+  // Key for lookup (how to find this learning in future)
+  canonical_field:      text('canonical_field').notNull(),     // e.g. "total_revenue"
+  raw_label_pattern:    text('raw_label_pattern').notNull(),   // normalised original label
+  template_type:        text('template_type').notNull(),       // T1-T8 | '*' (any template)
+  statement_type:       text('statement_type').notNull(),      // income_statement | balance_sheet | etc.
+
+  // What was learned
+  coa_id:               text('coa_id').notNull().references(() => coaReference.coa_id),
+  learned_confidence:   numeric('learned_confidence', { precision:4, scale:3 }).default('0.950'),
+  rationale:            text('rationale').notNull(),
+
+  // Attribution (shown to user in future runs)
+  source_document:      text('source_document').notNull(),  // company name + year
+  source_document_id:   uuid('source_document_id').references(() => documents.id),
+  analyst_id:           text('analyst_id').notNull(),
+  created_at:           timestamp('created_at', { withTimezone: true }).defaultNow(),
+
+  // Quality tracking
+  times_applied:        integer('times_applied').default(0),
+  last_applied_at:      timestamp('last_applied_at', { withTimezone: true }),
+  times_overridden:     integer('times_overridden').default(0),
+});</code></pre>
+
+  <h3>Lookup algorithm — lib/spreading/learning-store.ts</h3>
+  <pre><code>// lib/spreading/learning-store.ts
+export async function findLearnedMapping(
+  canonicalField: string,
+  rawLabel: string,
+  templateType: string
+): Promise&lt;LearnedMapping | null&gt; {
+  // Priority 1: exact canonical_field + template_type match
+  const exact = await db.query.learnedMappings.findFirst({
+    where: and(
+      eq(learnedMappings.canonical_field, canonicalField),
+      eq(learnedMappings.template_type, templateType)
+    ),
+    orderBy: desc(learnedMappings.created_at),
+  });
+  if (exact) return exact;
+
+  // Priority 2: canonical_field match on any template ('*')
+  const anyTemplate = await db.query.learnedMappings.findFirst({
+    where: and(
+      eq(learnedMappings.canonical_field, canonicalField),
+      eq(learnedMappings.template_type, '*')
+    ),
+    orderBy: desc(learnedMappings.created_at),
+  });
+  if (anyTemplate) return anyTemplate;
+
+  // Priority 3: normalised raw label fuzzy match
+  const normalisedLabel = normaliseLabelForLookup(rawLabel);
+  const labelMatch = await db.query.learnedMappings.findFirst({
+    where: ilike(learnedMappings.raw_label_pattern, \`%\${normalisedLabel}%\`),
+    orderBy: desc(learnedMappings.created_at),
+  });
+  return labelMatch ?? null;
+}</code></pre>
+
+  <h3>Attribution message format</h3>
+  <p>When a learned mapping is applied, the following attribution string is stored in <code>coa_mappings.rationale</code> and displayed in the UI:</p>
+  <pre><code>// Attribution format (stored as rationale when mapping_source = 'learned')
+"Mapped using analyst learning from [company name], [year] (applied [date]).
+Original rationale: [analyst's rationale text].
+Confidence inherited: [score]. Applied [N] time(s) previously."
+
+// Example:
+"Mapped using analyst learning from Aditya Birla Finance 2024 (applied 2025-04-01).
+Original rationale: 'Reserve u/s 45-IC RBI maps to BS-109 Capital & Restricted
+Reserves — statutory reserve mandated by RBI for Indian NBFCs under Section 45-IC
+of the RBI Act 1934. Not freely distributable. Accounting treatment: debit retained
+earnings, credit statutory reserve. Confidence inherited: 0.92. Applied 3 time(s) previously.'"</code></pre>
+
+  <h3>Learning quality over time</h3>
+  <table>
+    <thead><tr><th>Metric</th><th>How tracked</th><th>Where surfaced</th></tr></thead>
+    <tbody>
+      <tr><td><code>times_applied</code></td><td>Incremented every time the learning is used for a new document</td><td>Learning Store admin view (future)</td></tr>
+      <tr><td><code>times_overridden</code></td><td>Incremented when an analyst overrides a learned mapping with a different CoA entry</td><td>Signals low-quality learning — flag for review</td></tr>
+      <tr><td><code>learned_confidence</code></td><td>Starts at 0.95 for manually confirmed mappings. Can be increased to 0.99 once applied 5+ times without override.</td><td>Confidence bar in spread output</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Learning Loop flow diagram (text)</h3>
+  <pre><code>New document → Stage 11 (COA Mapping)
+  ↓
+  For each row:
+    → CHECK learned_mappings table first
+      → FOUND? Apply learned mapping (no Claude call). Increment times_applied.
+                Show attribution message in UI.
+      → NOT FOUND? Call Claude. Get confidence score.
+        → confidence ≥ 0.60? Write to coa_mappings (source = 'claude')
+        → confidence &lt; 0.60? Write to unmapped_items. Block spread output.
+  ↓
+  Unmapped items exist?
+    → YES: Document status = 'has_unmapped'. Redirect to Unmapped Resolver.
+           Analyst selects CoA for each item.
+           → On confirm: write coa_mappings (source = 'manual')
+                         write learned_mappings (for future use)
+                         update unmapped_items status = 'resolved'
+    → NO: All rows mapped. Run balance checks. Document status = 'spread_complete'
+  ↓
+  Spread output ready. Available on Spread Review screen.</code></pre>
+</div>
+
+<!-- ═══════════════ SECTION 08 ═══════════════ -->
+<div class="section" id="datamodel">
+  <div class="section-label">Section 08</div>
+  <h2>Data Model: New Tables &amp; Columns</h2>
+
+  <h3>New tables (4)</h3>
+  <table>
+    <thead><tr><th>Table</th><th>Purpose</th><th>Key columns</th></tr></thead>
+    <tbody>
+      <tr><td><code>coa_reference</code></td><td>Read-only CoA seed data from BS_PL_Line_Items_V1.xlsx</td><td>coa_id (PK), line_item_name, statement, broad_category, sub_category, definition, spreading_guidance, sign_convention, is_subtotal, is_memo_item</td></tr>
+      <tr><td><code>coa_mappings</code></td><td>One record per mapped row per document. The actual spread output.</td><td>id, document_id FK, mapped_row_id FK, coa_id FK, confidence, rationale, mapping_source ('claude'|'learned'|'manual'), learned_mapping_id FK (nullable), analyst_confirmed_at, value_spread (JSONB — values per year keyed by year), sign_applied (boolean)</td></tr>
+      <tr><td><code>unmapped_items</code></td><td>Rows that could not be auto-mapped. Pending analyst resolution.</td><td>id, document_id FK, mapped_row_id FK, raw_label, canonical_field, statement_type, claude_suggestions (JSONB — top 3 candidates), status ('pending'|'resolved'|'skipped'), resolved_coa_id, resolved_at, resolved_by</td></tr>
+      <tr><td><code>learned_mappings</code></td><td>Learning store. Analyst decisions stored for future reuse.</td><td>id, canonical_field, raw_label_pattern, template_type, statement_type, coa_id FK, learned_confidence, rationale, source_document, source_document_id FK, analyst_id, created_at, times_applied, last_applied_at, times_overridden</td></tr>
+    </tbody>
+  </table>
+
+  <h3>New column on documents table</h3>
+  <pre><code>unmapped_count:   integer('unmapped_count').default(0),
+spread_status:    text('spread_status').default('not_started'),
+// Values: 'not_started' | 'spreading' | 'has_unmapped' | 'spread_complete' | 'spread_error'
+balance_check_result: jsonb('balance_check_result'),
+// { isBalanced, totalAssets, totalLiabilitiesEquity, difference, checkedAt }</code></pre>
+
+  <h3>Spread result value format (coa_mappings.value_spread)</h3>
+  <pre><code>// JSONB structure for coa_mappings.value_spread
+{
+  "2024": { "value": 1354217, "currency": "INR", "unit_scale": "lakhs",
+            "value_usd_thousands": 1624, "year_type": "actual" },
+  "2023": { "value": 1149220, "currency": "INR", "unit_scale": "lakhs",
+            "value_usd_thousands": 1380, "year_type": "actual" }
+}</code></pre>
+
+  <h3>Indexes required</h3>
+  <pre><code>// 4 new indexes
+idx_coa_mappings_doc      ON coa_mappings(document_id)
+idx_coa_mappings_coa_id   ON coa_mappings(coa_id)
+idx_unmapped_pending      ON unmapped_items(document_id) WHERE status = 'pending'
+idx_learned_field_tmpl    ON learned_mappings(canonical_field, template_type)</code></pre>
+
+  <h3>Seed script additions</h3>
+  <pre><code>// scripts/seed-coa-reference.ts
+// Run once: npx tsx scripts/seed-coa-reference.ts
+// Reads BS_PL_Line_Items_V1.xlsx and inserts all 184 CoA entries (116 BS + 68 PL)
+// into coa_reference table. Idempotent (upsert on coa_id conflict).</code></pre>
+</div>
+
+<!-- ═══════════════ SECTION 09 ═══════════════ -->
+<div class="section" id="api">
+  <div class="section-label">Section 09</div>
+  <h2>API Routes</h2>
+
+  <table>
+    <thead><tr><th>Method</th><th>Route</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>GET</td><td>/api/spread/[id]</td><td>Return full spread result: all coa_mappings, balance check, subtotal checks, unmapped count.</td></tr>
+      <tr><td>GET</td><td>/api/spread/[id]/output</td><td>Return the spread output in standardised format (XLSX-ready structure). BS and P&amp;L in separate sections, sorted by CoA ID order, with confidence and source columns.</td></tr>
+      <tr><td>GET</td><td>/api/spread/[id]/unmapped</td><td>Return all pending unmapped items with claude_suggestions expanded (full CoA definitions populated).</td></tr>
+      <tr><td>POST</td><td>/api/spread/[id]/resolve-unmapped</td><td>Analyst resolves one unmapped item. Body: {unmapped_item_id, selected_coa_id, analyst_rationale}. Writes coa_mappings + learned_mappings. Updates unmapped_items status.</td></tr>
+      <tr><td>POST</td><td>/api/spread/[id]/override-mapping</td><td>Analyst overrides an existing coa_mapping (even if auto-mapped by Claude or learned). Body: {coa_mapping_id, new_coa_id, rationale}. Increments times_overridden on the learned_mapping if applicable. Inserts new learned_mapping.</td></tr>
+      <tr><td>GET</td><td>/api/learned-mappings</td><td>List all learned mappings (admin view). Filterable by template_type, statement_type, times_applied.</td></tr>
+      <tr><td>DELETE</td><td>/api/learned-mappings/[id]</td><td>Delete a learned mapping (if analyst determines it is incorrect). Requires confirmation.</td></tr>
+      <tr><td>GET</td><td>/api/coa-reference</td><td>Return full CoA reference table (for dropdowns in the Unmapped Resolver).</td></tr>
+      <tr><td>POST</td><td>/api/spread/[id]/export/xlsx</td><td>Generate XLSX spread output with separate sheets for BS and P&amp;L, confidence colour-coding, source column, and learning attribution notes.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════ SECTION 10 ═══════════════ -->
+<div class="section" id="screens">
+  <div class="section-label">Section 10</div>
+  <h2>Frontend: New Screens &amp; Changes to Existing Screens</h2>
+
+  <h3>New screen A — Spread Review: /spread/[id]</h3>
+  <p>Shows the full CoA-mapped spread output for a document after Stage 11 completes. This is the primary output the bank&rsquo;s credit analyst uses.</p>
+  <ul>
+    <li><strong>Header:</strong> Document name + template + scope badge + balance check status (&ldquo;✓ Balanced&rdquo; in green, &ldquo;✗ Imbalanced — $X difference&rdquo; in red).</li>
+    <li><strong>Statement selector tabs:</strong> Balance Sheet | P&amp;L. Each shows all CoA entries for that statement in CoA ID order.</li>
+    <li><strong>Spread table columns:</strong> CoA ID &middot; Line item name &middot; Raw label (source) &middot; Year 1 value &middot; Year 2 value &middot; Confidence &middot; Source badge (Claude / Learned / Manual) &middot; Rationale (expandable tooltip).</li>
+    <li><strong>Learning attribution:</strong> Rows with <code>mapping_source = 'learned'</code> show an amber &ldquo;Learned&rdquo; badge with a hover tooltip showing the full attribution message (&ldquo;From Aditya Birla Finance 2024 &middot; 2025-04-01&rdquo;).</li>
+    <li><strong>Unmapped banner:</strong> If <code>unmapped_count &gt; 0</code>, a red banner at the top: &ldquo;N items unmapped — spread output is incomplete. Resolve now &rarr;&rdquo;</li>
+    <li><strong>Override:</strong> Any row can be overridden by clicking its CoA ID and selecting a different entry from a searchable CoA dropdown. This triggers the override API and stores a new learned mapping.</li>
+    <li><strong>Export:</strong> &ldquo;Export Spread XLSX&rdquo; primary button generates a multi-sheet workbook (BS sheet + P&amp;L sheet + Confidence sheet + Learned Mappings sheet).</li>
+  </ul>
+
+  <h3>New screen B — Unmapped Resolver: /spread/[id]/unmapped</h3>
+  <p>Dedicated screen for resolving unmapped items. Accessible from the Spread Review banner or the Document Library table (shown when status is <code>has_unmapped</code>).</p>
+  <ul>
+    <li><strong>Progress header:</strong> &ldquo;Resolving N of M unmapped items&rdquo; with a horizontal progress bar.</li>
+    <li><strong>Item navigator:</strong> Left sidebar list of all unmapped items. Each shows raw label + statement type. Current item highlighted.</li>
+    <li><strong>Item detail (centre panel):</strong> Raw label, canonical field, statement type, values, and Claude&rsquo;s explanation of why it was not auto-mapped (&ldquo;Ambiguity: 3 valid targets identified — [BS-009, BS-010, BS-083]&rdquo;).</li>
+    <li><strong>Suggestion cards (right panel):</strong> Up to 3 CoA candidate cards, each showing CoA ID + name, confidence score bar, CoA definition excerpt, Claude&rsquo;s matching rationale. Clicking a card selects it (highlighted border). Analyst can also search the full CoA if none of the suggestions are right.</li>
+    <li><strong>Rationale input:</strong> Pre-filled with Claude&rsquo;s rationale for the selected suggestion. Analyst can edit before confirming. This text is stored in <code>learned_mappings.rationale</code>.</li>
+    <li><strong>Action buttons:</strong> &ldquo;Confirm mapping&rdquo; (primary) &middot; &ldquo;Skip for now&rdquo; (ghost) &middot; &ldquo;Next item&rdquo; (after confirm).</li>
+  </ul>
+
+  <h3>Changes to existing screens</h3>
+  <table>
+    <thead><tr><th>Screen</th><th>Change</th></tr></thead>
+    <tbody>
+      <tr><td>Document Library (/documents)</td><td>Add new &ldquo;Spread status&rdquo; column with badges: Not started &middot; Spreading &middot; Has unmapped (amber, click to resolve) &middot; Spread complete (green). Add &ldquo;View Spread&rdquo; action link for completed documents.</td></tr>
+      <tr><td>Sidebar navigation</td><td>Add new nav group &ldquo;Spreading&rdquo; with two items: &ldquo;Spread Review&rdquo; and &ldquo;Unmapped Resolver&rdquo; (with count badge when items pending). Also add &ldquo;Learning Store&rdquo; as an admin item.</td></tr>
+      <tr><td>Export Centre (/export/[id])</td><td>Add &ldquo;Spread XLSX&rdquo; as a new primary export format (alongside the existing XLSX workbook). The Spread XLSX uses the CoA order and format required by the bank&rsquo;s credit system, not the statement order.</td></tr>
+      <tr><td>Upload pipeline steps card</td><td>Add Step 11 &ldquo;COA Mapping &amp; Spreading&rdquo; to the 10-step pipeline card. Show learning attribution inline: &ldquo;8 rows mapped via learning, 24 via Claude, 2 unmapped.&rdquo;</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════ SECTION 11 ═══════════════ -->
+<div class="section" id="requirements">
+  <div class="section-label">Section 11</div>
+  <h2>Functional Requirements Catalogue</h2>
+
+  <table>
+    <thead><tr><th>Req ID</th><th>Requirement</th><th>Priority</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td class="req-id">COA-001</td><td>Seed the full CoA reference (BS-001 to BS-116 + PL-001 to PL-068) from <span class="file-ref">BS_PL_Line_Items_V1.xlsx</span> into <code>coa_reference</code> table before first run.</td><td><span class="priority p-must">Must</span></td><td>Idempotent seed script. No Claude Code modifications to CoA entries.</td></tr>
+      <tr><td class="req-id">COA-002</td><td>Stage 11 runs as part of the synchronous pipeline after Stage 10 (validation) for every uploaded document.</td><td><span class="priority p-must">Must</span></td><td>Same Vercel function, same HTTP request.</td></tr>
+      <tr><td class="req-id">COA-003</td><td>Every extracted row must be mapped to exactly one CoA entry. Cross-statement mapping (BS row to P&amp;L CoA) must be a hard error.</td><td><span class="priority p-must">Must</span></td><td>Enforced in both Claude prompt and validation logic.</td></tr>
+      <tr><td class="req-id">COA-004</td><td>Claude mapping must implement all 9 steps from the Word document (economic substance analysis, 4-dimension candidate evaluation, ambiguity penalisation, rationale generation, balance checks, subtotal checks).</td><td><span class="priority p-must">Must</span></td><td>The Word doc is the spec. Do not simplify the mapping logic.</td></tr>
+      <tr><td class="req-id">COA-005</td><td>Every CoA mapping must have a confidence score (0&ndash;1) and a non-empty rationale string of at least 50 characters.</td><td><span class="priority p-must">Must</span></td><td>Required for bank auditability.</td></tr>
+      <tr><td class="req-id">COA-006</td><td>Balance sheet identity check (Assets = Liabilities + Equity) must run after all rows are mapped. Result stored in <code>documents.balance_check_result</code> and shown on Spread Review screen.</td><td><span class="priority p-must">Must</span></td><td>0.1% tolerance. Report contributing line items if imbalanced.</td></tr>
+      <tr><td class="req-id">COA-007</td><td>Rows with confidence &lt; 0.60 must be placed in <code>unmapped_items</code> and must NOT appear in the spread output until resolved by an analyst.</td><td><span class="priority p-must">Must</span></td><td>Document status set to 'has_unmapped'. Spread output is incomplete.</td></tr>
+      <tr><td class="req-id">COA-008</td><td>The Unmapped Resolver screen must show Claude&rsquo;s top-3 CoA candidates with confidence scores, CoA definitions, and matching rationales for each unmapped item.</td><td><span class="priority p-must">Must</span></td><td>Pre-computed during Stage 11. No additional Claude call needed.</td></tr>
+      <tr><td class="req-id">COA-009</td><td>When an analyst confirms a manual mapping on the Unmapped Resolver, the system must simultaneously: (a) write to coa_mappings, (b) write to learned_mappings, (c) update unmapped_items status.</td><td><span class="priority p-must">Must</span></td><td>All three writes in a single DB transaction.</td></tr>
+      <tr><td class="req-id">LRN-001</td><td>Before calling Claude for COA mapping, the system must query <code>learned_mappings</code> for a matching entry. If found, apply it without a Claude call and increment <code>times_applied</code>.</td><td><span class="priority p-must">Must</span></td><td>Priority: exact canonical_field + template &gt; canonical_field + any_template &gt; normalised label fuzzy match.</td></tr>
+      <tr><td class="req-id">LRN-002</td><td>When a learned mapping is applied, the <code>coa_mappings.rationale</code> must contain an explicit attribution message in the format specified in Section 07.</td><td><span class="priority p-must">Must</span></td><td>Attribution must include: source company, year, date applied, original rationale, times previously applied.</td></tr>
+      <tr><td class="req-id">LRN-003</td><td>When an analyst overrides any mapping (whether Claude-generated or learned), the override must be stored as a new <code>learned_mappings</code> entry, and <code>times_overridden</code> must be incremented on the original learned mapping (if any).</td><td><span class="priority p-must">Must</span></td><td>Overrides are how the system &ldquo;unlearns&rdquo; incorrect mappings over time.</td></tr>
+      <tr><td class="req-id">LRN-004</td><td>A learned mapping with <code>times_overridden &ge; 2</code> must be automatically demoted: its <code>learned_confidence</code> must be set to 0.70 and it must no longer suppress the Claude call.</td><td><span class="priority p-should">Should</span></td><td>Prevents a bad learning from repeatedly being applied incorrectly.</td></tr>
+      <tr><td class="req-id">LRN-005</td><td>A learned mapping that has been applied successfully &ge; 5 times with zero overrides must have its <code>learned_confidence</code> increased to 0.99.</td><td><span class="priority p-should">Should</span></td><td>High-confidence established patterns deserve maximum confidence.</td></tr>
+      <tr><td class="req-id">LRN-006</td><td>The Spread Review screen must display a learning attribution tooltip on every row where <code>mapping_source = 'learned'</code>. The tooltip must include the source document, analyst, date, and original rationale.</td><td><span class="priority p-must">Must</span></td><td>Required for bank auditability. Analyst must be able to trace every learned decision.</td></tr>
+      <tr><td class="req-id">SPR-001</td><td>The Spread Review screen must present BS and P&amp;L CoA entries in the exact order of their CoA IDs (BS-001 before BS-002, etc.), not in the order they appear in the source document.</td><td><span class="priority p-must">Must</span></td><td>This is the standardised order required by the bank&rsquo;s credit system.</td></tr>
+      <tr><td class="req-id">SPR-002</td><td>The Spread XLSX export must contain: Sheet 1 = Balance Sheet (CoA order), Sheet 2 = P&amp;L (CoA order), Sheet 3 = Confidence &amp; Source (all rows with CoA ID, confidence, source, rationale), Sheet 4 = Learned Mappings Applied (attribution detail).</td><td><span class="priority p-must">Must</span></td><td>Sheet 4 is the audit trail for regulators and internal reviewers.</td></tr>
+      <tr><td class="req-id">SPR-003</td><td>Sign conventions from the CoA must be applied automatically during spreading. Contra-asset entries (e.g., BS-005 Bad Debt Reserve, BS-037 Accumulated Depreciation) must always be negative. Expense items must follow their stated sign convention.</td><td><span class="priority p-must">Must</span></td><td>Track in <code>coa_reference.sign_convention</code> and apply in the spread values calculation.</td></tr>
+      <tr><td class="req-id">SPR-004</td><td>If the same raw line item maps to a CoA entry that is already occupied by another row (e.g., two &ldquo;revenue&rdquo; items both mapping to PL-001), both values must be summed and a note added: &ldquo;Aggregated from N source rows.&rdquo;</td><td><span class="priority p-should">Should</span></td><td>Common when reports disaggregate revenue that the CoA aggregates.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════ SECTION 12 ═══════════════ -->
+<div class="section" id="todo">
+  <div class="section-label">Section 12</div>
+  <h2>Development Todo List (Claude Code Checkpoints)</h2>
+
+  <h3>Phase A — Data Layer</h3>
+  <table>
+    <thead><tr><th>#</th><th>File</th><th>Task</th><th>Done?</th></tr></thead>
+    <tbody>
+      <tr><td>A.1</td><td><code>lib/db/schema.ts</code></td><td>Add 4 new tables: coa_reference, coa_mappings, unmapped_items, learned_mappings per Section 08 column specs. Add new columns to documents table (unmapped_count, spread_status, balance_check_result).</td><td>&#9744;</td></tr>
+      <tr><td>A.2</td><td>Migration</td><td>Run: <code>npx drizzle-kit generate &amp;&amp; npx drizzle-kit migrate</code>. Add the 4 new indexes from Section 08.</td><td>&#9744;</td></tr>
+      <tr><td>A.3</td><td><code>scripts/seed-coa-reference.ts</code></td><td>Read BS_PL_Line_Items_V1.xlsx using openpyxl or xlsx npm package. Parse both sheets. Insert all 184 CoA entries into coa_reference. Set is_subtotal and sign_convention from definition/guidance text analysis. Idempotent (upsert).</td><td>&#9744;</td></tr>
+      <tr><td>A.4</td><td><code>lib/db/queries/coa-mappings.ts</code></td><td>Write: insertCoaMappings (batch), getCoaMappingsByDocument, getCoaMappingByCoa, overrideCoaMapping.</td><td>&#9744;</td></tr>
+      <tr><td>A.5</td><td><code>lib/db/queries/unmapped-items.ts</code></td><td>Write: insertUnmappedItems (batch), getPendingUnmappedByDocument, resolveUnmappedItem.</td><td>&#9744;</td></tr>
+      <tr><td>A.6</td><td><code>lib/db/queries/learned-mappings.ts</code></td><td>Write: insertLearnedMapping, findLearnedMapping (3-priority lookup), updateTimesApplied, updateTimesOverridden, getLearnedMappingsList (paginated, filterable).</td><td>&#9744;</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Phase B — Spreading Engine</h3>
+  <table>
+    <thead><tr><th>#</th><th>File</th><th>Task</th><th>Done?</th></tr></thead>
+    <tbody>
+      <tr><td>B.1</td><td><code>lib/spreading/learning-store.ts</code></td><td>Implement findLearnedMapping() with 3-priority lookup (exact field+template &gt; field+any &gt; normalised label fuzzy). Implement normaliseLabelForLookup(). Implement updateLearningConfidence() for auto-promotion/demotion rules (LRN-004, LRN-005).</td><td>&#9744;</td></tr>
+      <tr><td>B.2</td><td><code>lib/spreading/map-row-to-coa.ts</code></td><td>Implement mapRowToCoaWithClaude() using generateObject() with the Zod schema from Section 05. System prompt must implement all 9 mapping steps from the Word document. Return top-3 candidates always.</td><td>&#9744;</td></tr>
+      <tr><td>B.3</td><td><code>lib/spreading/balance-checks.ts</code></td><td>Implement checkBalanceSheetIdentity() using CoA broad_category groupings. 0.1% tolerance. Implement identifyImbalanceContributors(). Implement verifySubtotals() for CoA entries where is_subtotal=true.</td><td>&#9744;</td></tr>
+      <tr><td>B.4</td><td><code>lib/spreading/coa-mapper.ts</code></td><td>Implement runCOAMappingStage() as the orchestrator per Section 04. Check learning store first for each row. Call Claude only if no learned mapping. Apply sign conventions. Handle aggregation (SPR-004).</td><td>&#9744;</td></tr>
+      <tr><td>B.5</td><td><code>lib/spreading/spread-formatter.ts</code></td><td>Implement formatSpreadOutput(coaMappings, coaReference): produces sorted (by CoA ID), complete spread object with all 184 CoA entries (empty if not applicable for this document), ready for both UI rendering and XLSX export.</td><td>&#9744;</td></tr>
+      <tr><td>B.6</td><td><code>lib/export/spread-xlsx.ts</code></td><td>Implement generateSpreadXlsx(doc, formattedSpread) using exceljs. 4 sheets: Balance Sheet, P&amp;L, Confidence &amp; Source, Learned Mappings Applied. Colour-code by confidence (green/amber/orange/red). Include attribution notes in Sheet 4.</td><td>&#9744;</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Phase C — Pipeline Integration &amp; API Routes</h3>
+  <table>
+    <thead><tr><th>#</th><th>File</th><th>Task</th><th>Done?</th></tr></thead>
+    <tbody>
+      <tr><td>C.1</td><td><code>app/api/documents/route.ts</code></td><td>Add Stage 11 after Stage 10: call runCOAMappingStage(). Update document status to 'spreading' then 'has_unmapped' or 'spread_complete'. Return spreading summary in response.</td><td>&#9744;</td></tr>
+      <tr><td>C.2</td><td><code>app/api/spread/[id]/route.ts</code></td><td>GET: return full spread result (coa_mappings joined with coa_reference, balance check, subtotal checks, unmapped count).</td><td>&#9744;</td></tr>
+      <tr><td>C.3</td><td><code>app/api/spread/[id]/output/route.ts</code></td><td>GET: return formatted spread output (all 184 CoA entries, sorted by ID, with values, confidence, source, rationale).</td><td>&#9744;</td></tr>
+      <tr><td>C.4</td><td><code>app/api/spread/[id]/unmapped/route.ts</code></td><td>GET: return all pending unmapped items with claude_suggestions fully populated (CoA definition fetched from coa_reference for each suggestion).</td><td>&#9744;</td></tr>
+      <tr><td>C.5</td><td><code>app/api/spread/[id]/resolve-unmapped/route.ts</code></td><td>POST: resolve one unmapped item. Write coa_mappings + learned_mappings + update unmapped_items in a single transaction. If all resolved, set document spread_status to 'spread_complete'.</td><td>&#9744;</td></tr>
+      <tr><td>C.6</td><td><code>app/api/spread/[id]/override-mapping/route.ts</code></td><td>POST: override an existing coa_mapping. Increment times_overridden on original learned_mapping. Insert new learned_mapping. Update coa_mapping.</td><td>&#9744;</td></tr>
+      <tr><td>C.7</td><td><code>app/api/spread/[id]/export/xlsx/route.ts</code></td><td>GET: generate Spread XLSX via generateSpreadXlsx(), upload to Vercel Blob, return signed URL.</td><td>&#9744;</td></tr>
+      <tr><td>C.8</td><td><code>app/api/learned-mappings/route.ts</code></td><td>GET: list all learned mappings (paginated, filterable). DELETE: delete a learned mapping by ID.</td><td>&#9744;</td></tr>
+      <tr><td>C.9</td><td><code>app/api/coa-reference/route.ts</code></td><td>GET: return full CoA reference (for dropdowns). Support ?statement= and ?broad_category= filters.</td><td>&#9744;</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Phase D — Frontend</h3>
+  <table>
+    <thead><tr><th>#</th><th>File</th><th>Task</th><th>Done?</th></tr></thead>
+    <tbody>
+      <tr><td>D.1</td><td><code>app/(dashboard)/spread/[id]/page.tsx</code></td><td>Build Spread Review screen per Section 10: statement selector tabs (BS/P&amp;L), spread table with all columns, learning attribution badges + tooltip, balance check status banner, unmapped items banner, override capability, Export Spread XLSX button.</td><td>&#9744;</td></tr>
+      <tr><td>D.2</td><td><code>app/(dashboard)/spread/[id]/unmapped/page.tsx</code></td><td>Build Unmapped Resolver screen per Section 10: progress header, item navigator sidebar, item detail panel, 3 suggestion cards, rationale input, confirm/skip buttons. Navigate through items sequentially.</td><td>&#9744;</td></tr>
+      <tr><td>D.3</td><td>Sidebar layout</td><td>Add &ldquo;Spreading&rdquo; nav group to (dashboard)/layout.tsx with: &ldquo;Spread Review&rdquo; item and &ldquo;Unmapped Resolver&rdquo; item (with count badge from pending unmapped_items query).</td><td>&#9744;</td></tr>
+      <tr><td>D.4</td><td><code>app/(dashboard)/documents/page.tsx</code></td><td>Add &ldquo;Spread status&rdquo; column to the Document Library table. Add &ldquo;View Spread&rdquo; action link for spread_complete documents. Show &ldquo;Resolve unmapped →&rdquo; link for has_unmapped documents.</td><td>&#9744;</td></tr>
+      <tr><td>D.5</td><td>Upload pipeline steps card</td><td>Add Step 11 to the pipeline steps card on /upload. Show spreading summary when complete: &ldquo;N learned, M Claude-mapped, P unmapped.&rdquo;</td><td>&#9744;</td></tr>
+      <tr><td>D.6</td><td>Export Centre (/export/[id])</td><td>Add &ldquo;Spread XLSX&rdquo; as a new active export format card (alongside existing XLSX workbook). Generate via the new /api/spread/[id]/export/xlsx route.</td><td>&#9744;</td></tr>
+      <tr><td>D.7</td><td><code>components/spread/CoaDropdown.tsx</code></td><td>Searchable dropdown for CoA selection (used in both Unmapped Resolver and override flow). Shows CoA ID, name, broad_category, and a definition excerpt. Filterable by statement type.</td><td>&#9744;</td></tr>
+      <tr><td>D.8</td><td><code>components/spread/LearningAttributionTooltip.tsx</code></td><td>Tooltip component shown on &ldquo;Learned&rdquo; badge rows. Displays: source document, analyst, date applied, original rationale, times applied, times overridden.</td><td>&#9744;</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Phase E — Seed &amp; Verify</h3>
+  <table>
+    <thead><tr><th>#</th><th>Task</th><th>Done?</th></tr></thead>
+    <tbody>
+      <tr><td>E.1</td><td>Run <code>npx tsx scripts/seed-coa-reference.ts</code>. Verify all 184 entries in coa_reference table. Spot-check BS-001 (Cash), BS-115 (Retained Earnings), PL-001 (Sales/Revenue), PL-040 (Profit Before Taxes).</td><td>&#9744;</td></tr>
+      <tr><td>E.2</td><td>Process Aditya Birla Finance 2024 (T3, Ind AS, has standalone + consolidated). Verify Stage 11 runs. Check that NRC/reserve items are mapped to BS-109 (Capital &amp; Restricted Reserves). Check balance sheet identity.</td><td>&#9744;</td></tr>
+      <tr><td>E.3</td><td>Manually trigger one unmapped item resolution on HDFC Credila 2023. Verify learned_mappings is written. Re-process Aditya Birla Finance 2024 (same template). Verify the learned mapping is applied with attribution, no Claude call made.</td><td>&#9744;</td></tr>
+      <tr><td>E.4</td><td>Override one learned mapping. Verify times_overridden increments. Apply learning demotion rule: if times_overridden &ge; 2, set learned_confidence to 0.70.</td><td>&#9744;</td></tr>
+      <tr><td>E.5</td><td>Generate Spread XLSX for Orient Securities 2024. Verify 4 sheets present. Verify BS sheet sorted by CoA ID order. Verify Sheet 4 (Learned Mappings Applied) shows attribution details.</td><td>&#9744;</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════ SECTION 13 ═══════════════ -->
+<div class="section" id="prompts">
+  <div class="section-label">Section 13</div>
+  <h2>Claude Code Session Prompts</h2>
+
+  <div class="callout green">
+    <strong>Setup:</strong> Place this document as <code>docs/spreading-requirements.html</code> and place both reference files as <code>docs/BS_PL_Line_Items_V1.xlsx</code> and <code>docs/Prompt_for_CoA_Mapping_V1.docx</code> in your project. Reference all three in every session prompt.
+  </div>
+
+  <h3>Session A — Data Layer (Phases A.1&ndash;A.6)</h3>
+  <pre><code>Read docs/spreading-requirements.html Section 08 (Data Model) and Section 03 (COA Reference).
+Also read docs/BS_PL_Line_Items_V1.xlsx — it contains two sheets (BS Definitions and P&L Definitions)
+with 116 Balance Sheet and 68 P&L CoA entries you must seed.
+
+Add 4 new tables to lib/db/schema.ts:
+coa_reference, coa_mappings, unmapped_items, learned_mappings — per the exact
+column specs in Section 08. Add new columns to documents table.
+Run drizzle-kit generate && drizzle-kit migrate.
+
+Write the 4 query files: coa-mappings.ts, unmapped-items.ts,
+learned-mappings.ts (with 3-priority lookup), coa-reference.ts.
+
+Write scripts/seed-coa-reference.ts to read BS_PL_Line_Items_V1.xlsx
+and insert all 184 CoA entries. Set sign_convention from the definition
+text: contra-assets (Bad Debt Reserve, Accum Depreciation, Accum Amortisation)
+get sign_convention='negative'. Expense P&L items also get 'negative'.
+Run the seed script and verify the count.</code></pre>
+
+  <h3>Session B — Spreading Engine (Phases B.1&ndash;B.6)</h3>
+  <pre><code>Read docs/spreading-requirements.html Section 04, 05, 06, 07 (Spreading,
+Mapping, Unmapped, Learning Loop). Also read docs/Prompt_for_CoA_Mapping_V1.docx
+in full — the Claude prompt for COA mapping must implement all 9 steps from that document exactly.
+
+Build lib/spreading/ with 5 files:
+1. learning-store.ts: findLearnedMapping() with 3-priority lookup + confidence update rules
+2. map-row-to-coa.ts: mapRowToCoaWithClaude() — generateObject with Zod schema,
+   system prompt implementing all 9 steps from the Word document
+3. balance-checks.ts: checkBalanceSheetIdentity() + verifySubtotals()
+4. coa-mapper.ts: runCOAMappingStage() orchestrator — check learning first, else Claude
+5. spread-formatter.ts: formatSpreadOutput() — all 184 CoA entries, sorted by ID
+
+Also build lib/export/spread-xlsx.ts: 4-sheet XLSX per Section 10 SPR-002.</code></pre>
+
+  <h3>Session C — Pipeline Integration &amp; API Routes (Phase C)</h3>
+  <pre><code>Read docs/spreading-requirements.html Section 04 (Stage 11 code), Section 09 (API Routes).
+
+Add Stage 11 to app/api/documents/route.ts after Stage 10.
+Call runCOAMappingStage(). Handle unmapped count. Update document status.
+
+Build all 9 API routes in app/api/spread/ and app/api/learned-mappings/
+per Section 09. The resolve-unmapped route must write 3 records atomically
+(coa_mappings + learned_mappings + unmapped_items update) in a single transaction.
+The override route must increment times_overridden and insert a new learned_mapping.</code></pre>
+
+  <h3>Session D — Frontend Screens (Phase D)</h3>
+  <pre><code>Read docs/spreading-requirements.html Section 10 (Frontend screens).
+
+Build 2 new screens:
+1. app/(dashboard)/spread/[id]/page.tsx — Spread Review screen with
+   statement selector tabs (BS/P&L), spread table (CoA ID, line item,
+   raw label, year values, confidence bar, source badge, rationale tooltip),
+   learning attribution tooltip component, balance check banner,
+   unmapped items banner, override capability.
+
+2. app/(dashboard)/spread/[id]/unmapped/page.tsx — Unmapped Resolver
+   with progress header, item navigator sidebar, item detail panel,
+   3 suggestion cards (CoA ID + score + definition + rationale each),
+   rationale text input, confirm/skip buttons.
+
+Also build:
+- components/spread/CoaDropdown.tsx (searchable, filterable by statement)
+- components/spread/LearningAttributionTooltip.tsx
+
+Update existing screens:
+- (dashboard)/layout.tsx: add Spreading nav group
+- /documents/page.tsx: add spread_status column + action links
+- /upload (pipeline card): add Step 11
+- /export/[id]: add Spread XLSX card</code></pre>
+
+  <h3>Session E — Seed &amp; End-to-End Verify (Phase E)</h3>
+  <pre><code>Read docs/spreading-requirements.html Section 12 Phase E tasks.
+
+1. Run seed-coa-reference.ts. Verify 184 entries.
+2. Process Aditya Birla Finance 2024. Check Stage 11 runs.
+   Verify balance sheet identity check passes.
+3. Manually resolve one unmapped item on the Unmapped Resolver screen.
+   Verify learned_mappings entry is written correctly.
+4. Process L&T Finance 2019 (same T3 template).
+   Verify the learned mapping is applied with attribution message.
+   Verify no Claude call is made for that row (check logs).
+5. Download Spread XLSX for Orient Securities 2024.
+   Verify 4 sheets, CoA ID ordering, and Sheet 4 attribution detail.</code></pre>
+
+  <hr>
+  <p style="font-family:system-ui,sans-serif;font-size:12px;color:#8a8880;text-align:center;margin:0">
+    Financial SpreadX &middot; Spreading &amp; COA Mapping Requirements v1.0 &middot; 13 sections &middot; 36 checkpoints &middot; Reference: BS_PL_Line_Items_V1.xlsx + Prompt_for_CoA_Mapping_V1.docx
+  </p>
+</div>
+
+</body>
+</html>

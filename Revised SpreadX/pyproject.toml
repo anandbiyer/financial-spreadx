@@ -1,0 +1,12 @@
+[project]
+name = "spreadx-extract-py"
+version = "0.1.0"
+description = "Financial PDF raw extraction pipeline"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "integration: requires PDF fixtures or ANTHROPIC_API_KEY",
+    "slow: long-running tests (>60s)",
+]
