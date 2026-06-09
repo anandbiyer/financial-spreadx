@@ -1,5 +1,44 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+> This repo also contains [**`Revised SpreadX/`**](./Revised%20SpreadX) — a standalone **Python re-implementation** of the financial-statement extraction & spreading pipeline (the Next.js app here is the original TypeScript version). See the section below.
+
+## Revised SpreadX (Python port)
+
+[`Revised SpreadX/`](./Revised%20SpreadX) is a self-contained Python pipeline that turns a financial-statement PDF into a structured, spread Excel workbook:
+
+**PDF → classify pages → filter → extract line items & notes via Claude (text + vision) → Stage 11: COA mapping & spreading → multi-sheet Excel.**
+
+Stage 11 maps every extracted line to a standardized **184-entry Chart of Accounts** (116 Balance Sheet + 68 P&L), runs balance-sheet identity and subtotal-reconciliation checks, routes low-confidence lines to an unmapped queue, and learns from manual mappings. Persistence is SQLite via SQLAlchemy. Stage 11 is **gated off by default** (`--spread`), so plain extraction behavior is unchanged.
+
+### Folder layout (`Revised SpreadX/`)
+
+| Path | What it is |
+|------|------------|
+| `main.py` | CLI entry — extract a PDF (add `--spread` to run Stage 11) |
+| `app.py` | Streamlit UI |
+| `config.py` | Settings: model, cost-estimate pricing, `SPREAD_CONFIDENCE_THRESHOLD` (default `0.55`) |
+| `claude/` · `pdf/` · `pipeline/` · `models/` | Extraction pipeline (page classify → filter → extract → notes) |
+| `spreading/` · `db/` · `export/` · `llm/` | Stage 11 spreading, SQLite persistence, LLM provider abstraction + token/cost meter, Excel export |
+| `build_*.py` · `republish_at_threshold.py` | Offline analysis / republish tools (run from this folder) |
+| `tests/` | Unit tests |
+| `docs/` | Design notes, plans, prompt specs — **start with [`docs/Claude_Latest.md`](./Revised%20SpreadX/docs/Claude_Latest.md)** |
+| `BS_PL_Line_Items_V1.xlsx` | Chart-of-Accounts seed source (read by `db/seed_coa.py`) |
+
+### Running it
+
+```bash
+cd "Revised SpreadX"
+python -m venv .venv
+.venv\Scripts\pip install -r requirements.txt        # Windows (use .venv/bin/pip on macOS/Linux)
+
+# Provide a Claude key: put ANTHROPIC_API_KEY in a .env at this folder, or export it.
+.venv\Scripts\python -m db.seed_coa                  # seed the 184-entry CoA (idempotent)
+.venv\Scripts\python main.py "path/to/report.pdf" --spread   # -> <stem>_extracted.xlsx + <stem>_spread.xlsx
+.venv\Scripts\python -m pytest tests/unit -q          # run the unit tests
+```
+
+Each spread line is traceable back to its source extraction rows (an **Extraction ID** column links the extraction and spread workbooks), and every run reports estimated **LLM token usage & cost**. The full work log and design history live in `docs/Claude_Latest.md`.
+
 ## Getting Started
 
 First, run the development server:
