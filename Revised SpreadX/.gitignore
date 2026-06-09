@@ -31,6 +31,10 @@ payload.json
 # Sample annual-report corpus (real filings + generated workbooks) — local only
 Financials_Provided/
 
+# Stashes (local only): scratch experiment duplicates + generated/junk output
+archive/
+local/
+
 # Virtualenvs
 venv/
 .venv/

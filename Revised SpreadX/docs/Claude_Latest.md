@@ -2,9 +2,11 @@
 
 _Last updated: 2026-06-09. Scope: everything done in the Stage 11 (COA Mapping &
 Spreading) build, verification, prompt update, subtotal-reconciliation work, the
-equity-statement skip change, the confidence-threshold study + lowering to 0.55, and
-extraction-ID traceability + LLM token/cost tracking.
-**Nothing in this log is committed yet** — it all lives in the working tree._
+equity-statement skip change, the confidence-threshold study + lowering to 0.55,
+extraction-ID traceability + LLM token/cost tracking, the live 6-doc runs, and the
+GitHub push. **The code is now committed & pushed** to `anandbiyer/financial-spreadx`
+under a `Revised SpreadX/` subfolder (§3.14) — but the local repo still has it on an
+unpushed branch (`origin` = Nitish's repo). This log update postdates the push._
 
 ---
 
@@ -292,9 +294,56 @@ math, unknown-model flag, no-op-when-inactive); `test_spread_xlsx` updated for 7
 Extraction-ID columns + usage sheet; `test_coa_mapper` asserts aggregation merges id lists;
 `test_xlsx_export` updated for the new first column.
 
+### 3.13 Live end-to-end runs of 6 docs at 0.55 (DONE)
+Ran `main.py … --spread` (live, provider=anthropic, model=claude-sonnet-4-6) for **Aspect,
+Fubon, HDFC Credila, Infigen, Jane Street, Rathbone** — verifying the §3.12 features on real
+data. All produced fresh `_extracted.xlsx` (with the **Extraction ID** first column) and
+`_spread.xlsx` (7 sheets incl. **Run Usage & Cost**, plus the **Extraction ID(s)** columns); CLI
+printed the per-stage token/cost block each run.
+
+| Doc | Pages | Rows | Mapped/Unmapped | Equity ns | Balance diff | Est. $ |
+|-----|-------|------|-----------------|-----------|--------------|--------|
+| Aspect | 6 scan | 95 | 23 / 7 | 30 | 85,097 | 0.73 |
+| Fubon | 5 (3d/2s) | 225 | 56 / 21 | 20 | −161,055,988 | 2.12 |
+| HDFC Credila | 4 dig | 123 | 40 / 11 | 26 | +106,250 | 1.09 |
+| Infigen | 2 scan | 19 | 14 / 4 | 0 | +14,800,342 | 0.33 |
+| Jane Street | 5 scan | 93 | 32 / 5 | 11 | −1,883,637 | 0.81 |
+| Rathbone | 4 scan | 121 | 36 / 4 | 25 | +103 | 0.93 |
+
+- **Total est. cost ≈ $6.74** (list price; ~$6.01 first pass + ~$0.73 Aspect re-run).
+- **Aspect file-lock gotcha:** the first pass aborted Aspect's workbook writes with a
+  `PermissionError` because its `_extracted.xlsx` was **open in Excel** (extraction+spreading had
+  run and persisted to the DB; only the file writes failed). After the file was closed, a **full
+  re-run** regenerated both workbooks. Note: the `_extracted.xlsx` is NOT reconstructable from the
+  DB (raw extracted rows aren't persisted — only aggregated/sign-applied CoA results), so a
+  re-run is the only way to refresh it; the `_spread.xlsx` IS re-exportable from the DB for free.
+- Balances differ from the §3.10 offline 0.55 study because these are **fresh extractions**
+  (LLM non-deterministic) — e.g. Rathbone now near-balanced (+103), HDFC +106,250. Fubon hit one
+  transient JSON-parse error mid-extraction but recovered via retry/fallback (225 rows).
+
+### 3.14 Committed & pushed to GitHub (DONE)
+The whole working-tree effort was committed and pushed to the user's own repo.
+- **Local:** branch `stage11-spreading-traceability-usage`, commit `8aefa35` (62 files, +7,578),
+  authored `Anand Iyer <anandbiyer@gmail.com>` (repo-local identity). `.gitignore` extended with
+  `*.bak` and `Financials_Provided/`. **Excluded:** `.env` (API key), `*.db` + `.bak`, venvs, the
+  `Financials_Provided/` corpus + generated `*.xlsx`, and the `_i1`/`_main` scratch duplicates
+  (left untracked on disk).
+- **The configured `origin` (`nitish017dec-akf/my-spreadx-bedrock`) rejected the push (403 — no
+  write access for `anandbiyer`).** So the code was pushed to the user's own repo instead:
+  **`anandbiyer/financial-spreadx`** (private; turned out to be the original TS/Next.js
+  financial-spreadx app this project is a port of). The Python project was added as a
+  self-contained **`Revised SpreadX/` subfolder** (commit `b6cd794` on `master`, additive on top
+  of the TS history) via a clean `git archive` of the committed branch — the **local working tree
+  was not touched**. Repo created/confirmed via the GitHub API using the cached credential
+  (token scope: `repo`).
+- **Caveats:** the local repo's `origin` still points at Nitish's repo and is NOT linked to
+  `financial-spreadx` (structures differ — local has code at root, the new repo has it under the
+  subfolder). The push is a single snapshot commit, not per-feature history. This `Claude_Latest.md`
+  update was made **after** the push, so the pushed copy predates §3.13–§3.14.
+
 ---
 
-## 4. New & modified files (all uncommitted)
+## 4. New & modified files
 
 **New packages/modules:** `llm/` (provider abstraction: base, bedrock,
 anthropic_client, factory, **usage** [§3.12 token/cost meter]), `db/` (models, session, queries, seed_coa),
@@ -374,9 +423,12 @@ the near-miss promotions and show equity rows as `not_spread` on the Unmapped sh
   only if a non-UK layout defeats the heuristic.
 - **Roll out** — the 7 sample docs are republished at 0.55 (§3.10); any newly-added
   docs should be run with `--spread` (now defaults to 0.55) to carry the new sheets.
-- **T9/T10 — commit & cleanup:** stage the work (suggest logical commits: Phase-0
-  LLM abstraction; Stage 11 spreading; prompt update; reconciliation). Remove the
-  `_i1`/`_main` duplicate experiment files and the redundant Linux `venv/`.
+- **T9/T10 — commit & cleanup:** ~~commit~~ **DONE (§3.14)** — pushed to
+  `anandbiyer/financial-spreadx` under `Revised SpreadX/`. **Cleanup still open:** the
+  `_i1`/`_main` duplicate experiment files remain untracked on disk (excluded from the commit,
+  not deleted); the redundant Linux `venv/` (if still tracked) and `spreadx.db.bak` could be
+  removed. Optional: link the local repo to `financial-spreadx` (awkward due to the
+  root-vs-subfolder structure mismatch).
 
 ---
 
