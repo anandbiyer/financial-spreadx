@@ -69,7 +69,7 @@ export function Sidebar() {
       <div className="sb-logo">
         <div className="sb-m">Financial SpreadX</div>
         <div className="sb-sub">Statement Normalisation</div>
-        <div className="sb-demo">Phase 0 · Foundations</div>
+        <div className="sb-demo">v1 · Stage 11 Spreading</div>
       </div>
       <div className="sb-nav">
         {GROUPS.map((group) => (

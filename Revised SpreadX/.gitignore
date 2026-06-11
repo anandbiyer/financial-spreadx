@@ -23,6 +23,8 @@ tests/fixtures/
 
 # Spreading DB + logs + scratch output
 *.db
+*.db-wal
+*.db-shm
 *.bak
 *.phase3bak
 *.log

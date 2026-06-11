@@ -67,8 +67,8 @@ export function CostView({ usage }: { usage: UsageDetail }) {
                 <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 10 }} />
                 <Tooltip formatter={(v) => fmtMoney(Number(v))} />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Bar dataKey="Extraction" stackId="a" fill={EXTRACTION} />
-                <Bar dataKey="Spreading" stackId="a" fill={SPREADING} />
+                <Bar isAnimationActive={false} dataKey="Extraction" stackId="a" fill={EXTRACTION} />
+                <Bar isAnimationActive={false} dataKey="Spreading" stackId="a" fill={SPREADING} />
               </BarChart>
             </ResponsiveContainer>
           </Card>
@@ -76,7 +76,7 @@ export function CostView({ usage }: { usage: UsageDetail }) {
           <Card title="Stage Breakdown">
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
-                <Pie data={stageData} dataKey="value" nameKey="name" innerRadius={50} outerRadius={80} label>
+                <Pie isAnimationActive={false} data={stageData} dataKey="value" nameKey="name" innerRadius={50} outerRadius={80} label>
                   <Cell fill={EXTRACTION} />
                   <Cell fill={SPREADING} />
                 </Pie>
@@ -93,8 +93,8 @@ export function CostView({ usage }: { usage: UsageDetail }) {
                 <YAxis tick={{ fontSize: 10 }} />
                 <Tooltip formatter={(v) => fmtNum(Number(v))} />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Bar dataKey="Input" fill={INPUT} />
-                <Bar dataKey="Output" fill={OUTPUT} />
+                <Bar isAnimationActive={false} dataKey="Input" fill={INPUT} />
+                <Bar isAnimationActive={false} dataKey="Output" fill={OUTPUT} />
               </BarChart>
             </ResponsiveContainer>
           </Card>
@@ -105,7 +105,7 @@ export function CostView({ usage }: { usage: UsageDetail }) {
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 10 }} />
                 <Tooltip formatter={(v) => fmtMoney(Number(v))} />
-                <Bar dataKey="cost" fill="#0d9488" />
+                <Bar isAnimationActive={false} dataKey="cost" fill="#0d9488" />
               </BarChart>
             </ResponsiveContainer>
           </Card>

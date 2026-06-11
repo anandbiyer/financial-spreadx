@@ -128,7 +128,7 @@ export function CompareResolve({
             (centre) to resolve it, then <strong>Save &amp; Update Spread</strong>.
           </div>
           <div className="compare-3">
-            {/* Pane 1 — PDF (page-jump on unmapped-item click) */}
+            {/* Pane 1 — PDF (page-jump on CoA-line/leaf or unmapped-item click) */}
             <div className="cpane cpane-pdf">
               <div className="cpane-hdr"><div className="cpane-hdr-t">Extracted Page</div></div>
               {hasPdf ? (
@@ -151,6 +151,7 @@ export function CompareResolve({
                   sections={tree.sections}
                   openIds={openIds}
                   onToggle={toggle}
+                  onJump={setActivePage}
                   pendingByCoa={pendingByCoa}
                 />
               </div>
@@ -232,11 +233,13 @@ function CompareTree({
   sections,
   openIds,
   onToggle,
+  onJump,
   pendingByCoa,
 }: {
   sections: SpreadSection[];
   openIds: Set<string>;
   onToggle: (coaId: string) => void;
+  onJump: (page: number) => void;
   pendingByCoa: Map<string, Pending[]>;
 }) {
   return (
@@ -260,6 +263,7 @@ function CompareTree({
                 node={n}
                 isOpen={openIds.has(n.coaId)}
                 onToggle={onToggle}
+                onJump={onJump}
                 newLeaves={pendingByCoa.get(n.coaId) ?? []}
               />
             ))}
@@ -274,35 +278,49 @@ function CoaDropRow({
   node,
   isOpen,
   onToggle,
+  onJump,
   newLeaves,
 }: {
   node: CoaNode;
   isOpen: boolean;
   onToggle: (coaId: string) => void;
+  onJump: (page: number) => void;
   newLeaves: Pending[];
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `coa-${node.coaId}`, data: { coaId: node.coaId } });
   const hasChildren = node.leaves.length > 0 || newLeaves.length > 0;
+  // Source page of this CoA line (first leaf carrying a page) — drives the PDF jump.
+  const nodePage = node.leaves.find((l) => l.page)?.page ?? null;
   return (
     <>
       <tr
         ref={setNodeRef}
         className={`tree-parent coa-drop-row${isOpen ? " open" : ""}${isOver ? " drag-over" : ""}`}
-        onClick={() => hasChildren && onToggle(node.coaId)}
+        onClick={() => {
+          if (nodePage) onJump(nodePage); // jump the PDF to this CoA line's page
+          if (hasChildren) onToggle(node.coaId);
+        }}
       >
         <td>
           <span className="tree-icon">{hasChildren ? "▶" : ""}</span>
           <span className="coa-id">{node.coaId}</span>{" "}
           <span style={{ color: "var(--text-primary)" }}>{node.name}</span>
+          {nodePage && <span className="pg-s"> · p{nodePage}</span>}
         </td>
         <td className="num">{fmtNum(node.fy1)}</td>
         <td className="num">{fmtNum(node.fy2)}</td>
       </tr>
       {isOpen &&
         node.leaves.map((lf) => (
-          <tr className="tree-leaf" key={lf.extractionId}>
+          <tr
+            className="tree-leaf"
+            key={lf.extractionId}
+            style={lf.page ? { cursor: "pointer" } : undefined}
+            onClick={() => lf.page && onJump(lf.page)}
+          >
             <td>
               <span className="tree-connector">└──</span> {lf.rawLabel}
+              {lf.page ? <span className="pg-s"> · p{lf.page}</span> : null}
             </td>
             <td className="num">{fmtNum(lf.fy1)}</td>
             <td className="num">{fmtNum(lf.fy2)}</td>
