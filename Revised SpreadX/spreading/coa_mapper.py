@@ -98,6 +98,7 @@ def run_coa_mapping_stage(
     progress_callback: ProgressCallback | None = None,
     persist: bool = True,
     batch_size: int = MAP_BATCH_SIZE,
+    document_id: str | None = None,
 ) -> dict:
     """Map every row to the standardised CoA and persist the spread result.
 
@@ -110,7 +111,12 @@ def run_coa_mapping_stage(
     Returns a summary dict including document_id, source counts, balance check.
     """
     coa_by_id, by_statement = _load_coa_reference()
-    doc_id = create_document(filename, template_type, scope) if persist else "ephemeral"
+    if not persist:
+        doc_id = "ephemeral"
+    elif document_id:
+        doc_id = document_id  # pre-created at upload (B4); reuse it
+    else:
+        doc_id = create_document(filename, template_type, scope)
 
     mapped: list[dict] = []
     unmapped: list[dict] = []
@@ -122,6 +128,9 @@ def run_coa_mapping_stage(
     # subtotal reconciliation so each component can show its mapping status.
     # Captured pre-aggregation so the join survives `_aggregate`'s label merging.
     outcomes: dict[tuple, dict] = {}
+    # Per-row outcome keyed by extraction_id (1:1 with source rows) — persisted onto
+    # extracted_rows so the Workbench/tree can show each row's CoA (FrontendDesign §4.6).
+    row_outcomes: dict[int, dict] = {}
 
     def _outcome_key(row, stmt_type):
         return (str(row.get("raw_label", "") or "").strip().lower(), stmt_type)
@@ -146,6 +155,10 @@ def run_coa_mapping_stage(
             "status": "mapped", "coa_id": coa_id, "confidence": confidence,
             "source": source, "value_spread": vs, "sign_applied": applied,
         }
+        eid = row.get("extraction_id")
+        if eid:
+            row_outcomes[eid] = {"coa_id": coa_id, "mapping_status": "mapped",
+                                 "confidence": confidence}
 
     def _record_unmapped(row, stmt_type, raw_values, candidates, note,
                          status="pending", bucket=None):
@@ -164,6 +177,13 @@ def run_coa_mapping_stage(
             "status": "unmapped", "coa_id": "", "confidence": None,
             "source": "", "value_spread": raw_values, "sign_applied": False,
         }
+        eid = row.get("extraction_id")
+        if eid:
+            row_outcomes[eid] = {
+                "coa_id": None,
+                "mapping_status": "not_spread" if status == "not_spread" else "unmapped",
+                "confidence": None,
+            }
 
     # ── Pass 1: triage. Skip no-CoA rows; resolve learning-store hits (no LLM);
     #    collect the rest for batched LLM mapping, grouped by CoA statement.
@@ -264,4 +284,5 @@ def run_coa_mapping_stage(
         "mapped": mapped,          # convenient for non-persist callers/tests
         "unmapped": unmapped,
         "equity_unmapped": equity_unmapped,  # terminal not_spread items
+        "row_outcomes": row_outcomes,  # extraction_id -> {coa_id, mapping_status, confidence}
     }

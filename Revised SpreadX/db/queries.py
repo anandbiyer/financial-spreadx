@@ -10,13 +10,16 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import select
+from sqlalchemy import delete, select, update
 
 from db.models import (
+    AppSettings,
     CoaMapping,
     CoaReference,
     Document,
+    ExtractedRow,
     LearnedMapping,
+    Note,
     UnmappedItem,
 )
 from db.session import session_scope
@@ -71,8 +74,10 @@ def count_coa_reference() -> int:
 
 # ── Documents ─────────────────────────────────────────────────────────────────
 
-def create_document(filename: str, template_type: str, scope: str) -> str:
-    doc_id = _uid()
+def create_document(filename: str, template_type: str, scope: str,
+                    doc_id: str | None = None) -> str:
+    """Create a Document. Pass ``doc_id`` to use a caller-supplied id (upload flow)."""
+    doc_id = doc_id or _uid()
     with session_scope() as s:
         s.add(Document(
             id=doc_id, filename=filename, template_type=template_type,
@@ -93,6 +98,131 @@ def get_document(doc_id: str) -> dict | None:
     with session_scope() as s:
         doc = s.get(Document, doc_id)
         return _as_dict(doc) if doc else None
+
+
+def delete_document(doc_id: str) -> dict:
+    """Cascade-delete a document and its rows/notes/mappings/unmapped items (B7).
+
+    Global **learned mappings are preserved** — only their `source_document_id` FK is
+    nulled so it doesn't dangle. Returns the (pre-delete) `pdf_path` for file cleanup.
+    """
+    with session_scope() as s:
+        doc = s.get(Document, doc_id)
+        if not doc:
+            return {"deleted": False, "reason": "not found"}
+        pdf_path = doc.pdf_path
+        # Keep the learning, drop the (now-dangling) source reference.
+        s.execute(
+            update(LearnedMapping)
+            .where(LearnedMapping.source_document_id == doc_id)
+            .values(source_document_id=None)
+        )
+        for model in (ExtractedRow, Note, CoaMapping, UnmappedItem):
+            s.execute(delete(model).where(model.document_id == doc_id))
+        s.delete(doc)
+        return {"deleted": True, "pdf_path": pdf_path}
+
+
+# ── App settings (Frontend Phase 6, B8) ──────────────────────────────────────
+
+def get_settings() -> dict:
+    """The single settings row, or config-derived defaults if none saved yet."""
+    with session_scope() as s:
+        row = s.get(AppSettings, "default")
+        if row:
+            return _as_dict(row)
+    import config
+    return {
+        "id": "default",
+        "llm_provider": config.LLM_PROVIDER,
+        "llm_model": config.ANTHROPIC_MODEL,
+        "confidence_threshold": config.SPREAD_CONFIDENCE_THRESHOLD,
+    }
+
+
+def update_settings(**fields) -> dict:
+    with session_scope() as s:
+        row = s.get(AppSettings, "default")
+        if not row:
+            row = AppSettings(id="default")
+            s.add(row)
+        for k, v in fields.items():
+            if hasattr(row, k) and k != "id":
+                setattr(row, k, v)
+        row.updated_at = _utcnow()
+        s.flush()
+        return _as_dict(row)
+
+
+# ── Extracted rows & notes (Frontend Phase 1) ────────────────────────────────
+
+def insert_extracted_rows(doc_id: str, rows: list[dict],
+                          row_outcomes: dict[int, dict] | None = None) -> int:
+    """Persist a run's extracted rows with their per-row CoA outcome (B1).
+
+    ``rows`` are the orchestrator's row dicts (carry extraction_id, structure, etc.);
+    ``row_outcomes`` maps extraction_id -> {coa_id, mapping_status, confidence} from
+    the mapper. Rows without an outcome (cash-flow / unknown / skipped) default to
+    ``not_spread``.
+    """
+    row_outcomes = row_outcomes or {}
+    with session_scope() as s:
+        for r in rows:
+            eid = r.get("extraction_id") or 0
+            oc = row_outcomes.get(eid, {})
+            s.add(ExtractedRow(
+                id=_uid(),
+                document_id=doc_id,
+                extraction_id=eid,
+                raw_label=r.get("raw_label", "") or "",
+                raw_values=r.get("raw_values") or {},
+                section_path=r.get("section_path") or [],
+                indentation_level=int(r.get("indentation_level", 0) or 0),
+                is_subtotal=bool(r.get("is_subtotal", False)),
+                note_ref=r.get("note_ref"),
+                statement_type=r.get("statement_type", "") or "",
+                statement_scope=r.get("statement_scope", "unknown") or "unknown",
+                page=int(r.get("page", 0) or 0),
+                column_metadata=r.get("column_metadata"),
+                coa_id=oc.get("coa_id"),
+                mapping_status=oc.get("mapping_status", "not_spread"),
+                confidence=oc.get("confidence"),
+            ))
+        return len(rows)
+
+
+def insert_notes(doc_id: str, notes: list) -> int:
+    """Persist a run's extracted notes (B2). ``notes`` are NoteExtraction objects."""
+    with session_scope() as s:
+        for n in notes:
+            sub_tables = [t.model_dump() for t in getattr(n, "sub_tables", [])]
+            s.add(Note(
+                id=_uid(),
+                document_id=doc_id,
+                note_number=getattr(n, "note_number", 0),
+                note_title=getattr(n, "note_title", "") or "",
+                summary=getattr(n, "summary", "") or "",
+                sub_tables=sub_tables,
+            ))
+        return len(notes)
+
+
+def get_extracted_rows(doc_id: str) -> list[dict]:
+    with session_scope() as s:
+        rows = s.execute(
+            select(ExtractedRow)
+            .where(ExtractedRow.document_id == doc_id)
+            .order_by(ExtractedRow.extraction_id)
+        ).scalars().all()
+        return [_as_dict(r) for r in rows]
+
+
+def get_notes(doc_id: str) -> list[dict]:
+    with session_scope() as s:
+        rows = s.execute(
+            select(Note).where(Note.document_id == doc_id).order_by(Note.note_number)
+        ).scalars().all()
+        return [_as_dict(r) for r in rows]
 
 
 # ── CoA mappings ──────────────────────────────────────────────────────────────
@@ -160,6 +290,16 @@ def override_coa_mapping(coa_mapping_id: str, new_coa_id: str, rationale: str,
         m.mapping_source = "manual"
         m.confidence = 0.95
         m.learned_mapping_id = learned.id
+
+        # Re-point the underlying extracted rows to the corrected CoA.
+        ids = list(m.source_extraction_ids or [])
+        if ids:
+            s.execute(
+                update(ExtractedRow)
+                .where(ExtractedRow.document_id == m.document_id,
+                       ExtractedRow.extraction_id.in_(ids))
+                .values(mapping_status="mapped", coa_id=new_coa_id, confidence=0.95)
+            )
         return _as_dict(m)
 
 
@@ -241,7 +381,9 @@ def resolve_unmapped(unmapped_item_id: str, selected_coa_id: str,
         s.add(learned)
         s.flush()
 
-        # (a) coa mapping
+        # (a) coa mapping — carry the source extraction ids so the resolved line
+        # keeps its leaf traceability in the spread tree (FrontendDesign §4.6).
+        source_ids = list(item.source_extraction_ids or [])
         mapping = CoaMapping(
             id=_uid(),
             document_id=item.document_id,
@@ -254,8 +396,18 @@ def resolve_unmapped(unmapped_item_id: str, selected_coa_id: str,
             learned_mapping_id=learned.id,
             value_spread=item.value_spread,
             sign_applied=False,
+            source_extraction_ids=source_ids,
         )
         s.add(mapping)
+
+        # Reflect the per-row outcome on the extracted rows (Workbench view).
+        if source_ids:
+            s.execute(
+                update(ExtractedRow)
+                .where(ExtractedRow.document_id == item.document_id,
+                       ExtractedRow.extraction_id.in_(source_ids))
+                .values(mapping_status="mapped", coa_id=selected_coa_id, confidence=0.95)
+            )
 
         # (c) update unmapped item
         item.status = "resolved"

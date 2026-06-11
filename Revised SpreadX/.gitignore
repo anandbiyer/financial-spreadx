@@ -24,6 +24,7 @@ tests/fixtures/
 # Spreading DB + logs + scratch output
 *.db
 *.bak
+*.phase3bak
 *.log
 output.json
 payload.json

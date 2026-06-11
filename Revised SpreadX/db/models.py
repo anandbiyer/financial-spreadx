@@ -70,6 +70,16 @@ class Document(Base):
     reconciliation_result: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     # Per-run LLM token usage + estimated cost (llm.usage.UsageMeter snapshot).
     usage_result: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    # ── Frontend Phase 1 additions (B3–B6) ──────────────────────────────────
+    company: Mapped[str] = mapped_column(String, default="")          # captured during extraction
+    fiscal_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    pdf_path: Mapped[str | None] = mapped_column(String, nullable=True)  # retained source PDF (B5)
+    pipeline_status: Mapped[str] = mapped_column(String, default="queued")
+    # queued | processing | done | error  (the run lifecycle; coarse, Q8)
+    pipeline_stage: Mapped[str | None] = mapped_column(String, nullable=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Page-classification summary {total,digital,scanned,hybrid,pages:[...]} (B3).
+    page_summary: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
 
@@ -126,6 +136,70 @@ class UnmappedItem(Base):
     __table_args__ = (
         Index("idx_unmapped_doc_status", "document_id", "status"),
     )
+
+
+class AppSettings(Base):
+    """Single-row app settings store (Frontend Phase 6, B8). Functional subset only."""
+
+    __tablename__ = "app_settings"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default="default")
+    llm_provider: Mapped[str] = mapped_column(String, default="anthropic")
+    llm_model: Mapped[str] = mapped_column(String, default="claude-sonnet-4-6")
+    confidence_threshold: Mapped[float] = mapped_column(Float, default=0.55)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+
+
+class ExtractedRow(Base):
+    """Persisted raw extracted line item (Frontend Phase 1, B1).
+
+    Carries the full extraction structure (so Statement Tree / Review Workbench /
+    source-line drill-down can render) plus the per-row, *pre-aggregation* CoA outcome
+    (``coa_id`` / ``mapping_status`` / ``confidence``). The authoritative parent→leaf
+    link remains ``CoaMapping.source_extraction_ids`` ↔ ``extraction_id``; the per-row
+    ``coa_id`` here is a denormalised read convenience (FrontendDesign §4.6).
+    """
+
+    __tablename__ = "extracted_rows"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)  # uuid hex
+    document_id: Mapped[str] = mapped_column(ForeignKey("documents.id"), nullable=False)
+    extraction_id: Mapped[int] = mapped_column(Integer, default=0)  # 1-based, per run
+    raw_label: Mapped[str] = mapped_column(Text, default="")
+    raw_values: Mapped[dict] = mapped_column(JSON, default=dict)  # {year: value} (unsigned)
+    section_path: Mapped[list] = mapped_column(JSON, default=list)
+    indentation_level: Mapped[int] = mapped_column(Integer, default=0)
+    is_subtotal: Mapped[bool] = mapped_column(Boolean, default=False)
+    note_ref: Mapped[str | None] = mapped_column(String, nullable=True)
+    statement_type: Mapped[str] = mapped_column(String, default="")
+    statement_scope: Mapped[str] = mapped_column(String, default="unknown")
+    page: Mapped[int] = mapped_column(Integer, default=0)
+    column_metadata: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    # Per-row mapping outcome (denormalised; not a FK — may be null for unmapped/not_spread).
+    coa_id: Mapped[str | None] = mapped_column(String, nullable=True)
+    mapping_status: Mapped[str] = mapped_column(String, default="not_spread")
+    # mapped | unmapped | not_spread (cash-flow/equity/unknown)
+    confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
+
+    __table_args__ = (
+        Index("idx_extracted_rows_doc", "document_id"),
+        Index("idx_extracted_rows_doc_eid", "document_id", "extraction_id"),
+    )
+
+
+class Note(Base):
+    """Persisted extracted footnote (Frontend Phase 1, B2)."""
+
+    __tablename__ = "notes"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)  # uuid hex
+    document_id: Mapped[str] = mapped_column(ForeignKey("documents.id"), nullable=False)
+    note_number: Mapped[int] = mapped_column(Integer, default=0)
+    note_title: Mapped[str] = mapped_column(Text, default="")
+    summary: Mapped[str] = mapped_column(Text, default="")
+    sub_tables: Mapped[list] = mapped_column(JSON, default=list)
+
+    __table_args__ = (Index("idx_notes_doc", "document_id"),)
 
 
 class LearnedMapping(Base):

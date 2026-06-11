@@ -8,6 +8,8 @@ Ported from: financial-spreadx/app/api/documents/route.ts lines 75-293
 from __future__ import annotations
 
 import json
+import os
+import re
 from dataclasses import dataclass, field
 from typing import Callable
 
@@ -59,6 +61,34 @@ def _notify(cb: ProgressCallback | None, stage: str, detail: str, pct: float) ->
         cb(stage, detail, pct)
 
 
+def _derive_company(filename: str) -> str:
+    """Best-effort company name from the filename (B6 fallback).
+
+    Strips the extension and a trailing fiscal year, normalises separators.
+    'Aspect Capital Limited_2023.pdf' -> 'Aspect Capital Limited'.
+    """
+    stem = os.path.splitext(os.path.basename(filename or ""))[0]
+    stem = re.sub(r"[_\-\s]*\(?(19|20)\d{2}\)?\s*$", "", stem)  # trailing year
+    stem = re.sub(r"[_]+", " ", stem)
+    stem = re.sub(r"\s+", " ", stem).strip(" -_")
+    return stem or (filename or "")
+
+
+def _derive_fiscal_year(rows: list[dict], filename: str = "") -> int | None:
+    """Latest 4-digit year across the extracted values (captured during extraction,
+    Q13); falls back to a year embedded in the filename."""
+    years: list[int] = []
+    for r in rows:
+        for k in (r.get("raw_values") or {}).keys():
+            m = re.search(r"(19|20)\d{2}", str(k))
+            if m:
+                years.append(int(m.group(0)))
+    if years:
+        return max(years)
+    m = re.search(r"(19|20)\d{2}", filename or "")
+    return int(m.group(0)) if m else None
+
+
 def run_pipeline(
     pdf_bytes: bytes,
     template_type: str = "T0_unknown",
@@ -68,6 +98,7 @@ def run_pipeline(
     run_spreading: bool = False,
     llm_settings: dict | None = None,
     confidence_threshold: float | None = None,
+    document_id: str | None = None,
 ) -> PipelineResult:
     """Run the full S2 -> S2b -> S3 -> (S4b) -> S5 -> S6 [-> S11] pipeline.
 
@@ -101,6 +132,10 @@ def run_pipeline(
     pages = classify_pdf_pages(pdf_bytes)
     result.classified_pages = pages
     summary = summarize_classifications(pages)
+    # Snapshot the NOMINAL classification (text-layer based) before the S2c
+    # processing reroute mutates it — this is the document's perceived type and
+    # what the frontend's Scanned-vs-Digital view should reflect.
+    nominal_classification = {p.page_number: p.classification for p in pages}
     _notify(
         progress_callback,
         "S2",
@@ -443,6 +478,8 @@ def run_pipeline(
         spread_kwargs = {}
         if confidence_threshold is not None:
             spread_kwargs["confidence_threshold"] = confidence_threshold
+        if document_id is not None:
+            spread_kwargs["document_id"] = document_id
         spread = run_coa_mapping_stage(
             all_rows,
             template_type=template_type,
@@ -462,10 +499,39 @@ def run_pipeline(
                 f"Spread complete: {spread['counts']['mapped']} mapped, "
                 f"{spread['counts']['unmapped']} unmapped", 0.99)
 
-        # Persist the run's token usage on the document (so re-exports show it).
-        if spread.get("document_id") and spread["document_id"] != "ephemeral":
-            from db.queries import update_document
-            update_document(spread["document_id"], usage_result=usage_meter.snapshot())
+        # Persist the run's extraction artifacts + metadata on the document
+        # (Frontend Phase 1: extracted rows, notes, page summary, company/year,
+        # token usage). Only when a real document row exists.
+        doc_id = spread.get("document_id")
+        if doc_id and doc_id != "ephemeral":
+            from db.queries import insert_extracted_rows, insert_notes, update_document
+
+            # Page-classification summary using the NOMINAL (pre-reroute) type for
+            # counts + per-page classification, with the final section_type.
+            page_summary = {
+                "total": len(pages),
+                "digital": summary["digital"],
+                "scanned": summary["scanned"],
+                "hybrid": summary["hybrid"],
+                "pages": [
+                    {"page": p.page_number,
+                     "classification": nominal_classification.get(p.page_number, p.classification),
+                     "section_type": p.section_type}
+                    for p in pages
+                ],
+            }
+
+            insert_extracted_rows(doc_id, all_rows, spread.get("row_outcomes", {}))
+            insert_notes(doc_id, notes)
+            update_document(
+                doc_id,
+                company=_derive_company(filename),
+                fiscal_year=_derive_fiscal_year(all_rows, filename),
+                page_summary=page_summary,
+                pipeline_status="done",
+                pipeline_stage="S11",
+                usage_result=usage_meter.snapshot(),
+            )
 
     result.summary["usage"] = usage_meter.snapshot()
     reset_active_meter(usage_token)
